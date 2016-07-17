@@ -1,5 +1,5 @@
 from django.apps import AppConfig
 
 
-class CerebralConfig(AppConfig):
-    name = 'cerebral'
+class DjangoXMIConfig(AppConfig):
+    name = 'django-xmi'
