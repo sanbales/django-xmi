@@ -41,7 +41,8 @@ class ParticipantProperty(models.Model):
     stereotype = models.OneToOneField('Stereotype')
     base__property = models.ForeignKey('Property')
     end = models.ForeignKey('Property', 
-                            )
+                            help_text='A member end of the association block owning the property on which the ' +
+                            'stereotype is applied.')
 
 
 class Optional(models.Model):
@@ -73,7 +74,10 @@ class ItemFlow(models.Model):
     stereotype = models.OneToOneField('Stereotype')
     base__information_flow = models.ForeignKey('InformationFlow')
     item_property = models.ForeignKey('Property', 
-                                      )
+                                      help_text='An optional property that relates the flowing item to the ' +
+                                      'instances of the connector"s enclosing block. This property is applicable ' +
+                                      'only for item flows assigned to connectors. The multiplicity is zero if the ' +
+                                      'item flow is assigned to an Association.')
 
 
 class Block(models.Model):
@@ -104,7 +108,11 @@ class Block(models.Model):
 
     stereotype = models.OneToOneField('Stereotype')
     base__class = models.ForeignKey('Class')
-    is_encapsulated = models.BooleanField()
+    is_encapsulated = models.BooleanField(help_text='If true, then the block is treated as a black box; a part ' +
+                                          'typed by this black box can only be connected via its ports or directly ' +
+                                          'to its outer boundary. If false, or if a value is not present, then ' +
+                                          'connections can be established to elements of its internal structure ' +
+                                          'via deep-nested connector ends.')
 
 
 class InterfaceBlock(models.Model):
@@ -176,7 +184,15 @@ class ElementPropertyPath(models.Model):
     stereotype = models.OneToOneField('Stereotype')
     base__element = models.ForeignKey('Element')
     property_path = models.ForeignKey('Property', 
-                                      )
+                                      help_text='The propertyPath list of the NestedConnectorEnd stereotype must ' +
+                                      'identify a path of containing properties that identify the connected ' +
+                                      'property in the context of the block that owns the connector. The ordering ' +
+                                      'of properties is from a property of the block that owns the connector, ' +
+                                      'through a property of each intermediate block that types the preceding ' +
+                                      'property, until a property is reached that contains a connector end ' +
+                                      'property within its type. The connector end property is not included in the ' +
+                                      'propertyPath list, but instead is held by the role property of the UML ' +
+                                      'ConnectorEnd metaclass.')
 
     class Meta:
         abstract = True
@@ -249,7 +265,8 @@ class ConnectorProperty(models.Model):
     stereotype = models.OneToOneField('Stereotype')
     base__property = models.ForeignKey('Property')
     connector = models.ForeignKey('Connector', 
-                                  )
+                                  help_text='A connector of the block owning the property on which the stereotype ' +
+                                  'is applied.')
 
 
 class NoBuffer(models.Model):
@@ -352,22 +369,31 @@ class Requirement(models.Model):
     stereotype = models.OneToOneField('Stereotype')
     base__class = models.ForeignKey('Class')
     derived = models.ForeignKey('self', 
-                                )
+                                help_text='Derived from all requirements that are the client of a "deriveReqt" ' +
+                                'relationship for which this requirement is a supplier.')
     derived_from = models.ForeignKey('self', 
-                                     )
+                                     help_text='Derived from all requirements that are the supplier of a ' +
+                                     '"deriveReqt" relationship for which this requirement is a client.')
     id_ = models.CharField(max_length=255, help_text='The unique id of the requirement.')
     master = models.ForeignKey('self', 
-                               )
+                               help_text='This is a derived property that lists the master requirement for this ' +
+                               'slave requirement. The master attribute is derived from the supplier of the Copy ' +
+                               'dependency that has this requirement as the slave.')
     refined_by = models.ForeignKey('NamedElement', 
-                                   )
+                                   help_text='Derived from all elements that are the client of a "refine" ' +
+                                   'relationship for which this requirement is a supplier.')
     satisfied_by = models.ForeignKey('NamedElement', 
-                                     )
+                                     help_text='Derived from all elements that are the client of a "satisfy" ' +
+                                     'relationship for which this requirement is a supplier.')
     text = models.CharField(max_length=255, 
-                            )
+                            help_text='The textual representation or a reference to the textual representation of ' +
+                            'the requirement.')
     traced_to = models.ForeignKey('NamedElement', 
-                                  )
+                                  help_text='Derived from all elements that are the client of a "trace" ' +
+                                  'relationship for which this requirement is a supplier.')
     verified_by = models.ForeignKey('NamedElement', 
-                                    )
+                                    help_text='Derived from all elements that are the client of a "verify" ' +
+                                    'relationship for which this requirement is a supplier.')
 
 
 class TriggerOnNestedPort(ElementPropertyPath):
@@ -410,7 +436,8 @@ class View(models.Model):
     base__class = models.ForeignKey('Class')
     stakeholder = models.ForeignKey('Stakeholder')
     view_point = models.ForeignKey('Viewpoint', 
-                                   )
+                                   help_text='The viewpoint for this View, derived from the supplier of the ' +
+                                   '"conform" dependency whose client is this View.')
 
 
 class ValueType(models.Model):
@@ -430,9 +457,15 @@ class ValueType(models.Model):
     stereotype = models.OneToOneField('Stereotype')
     base__data_type = models.ForeignKey('DataType')
     quantity_kind = models.ForeignKey('InstanceSpecification', 
-                                      )
+                                      help_text='A kind of quantity that may be stated by means of defined units, ' +
+                                      'as identified by an instance of the Dimension stereotype. A value type may ' +
+                                      'optionally specify a dimension without any unit. Such a value has no ' +
+                                      'concrete representation, but may be used to express a value in an abstract ' +
+                                      'form independent of any specific units.')
     unit = models.ForeignKey('InstanceSpecification', 
-                             )
+                             help_text='A quantity in terms of which the magnitudes of other quantities that have ' +
+                             'the same dimension can be stated, as identified by an instance of the Unit ' +
+                             'stereotype.')
 
 
 class PropertySpecificType(models.Model):
@@ -472,7 +505,9 @@ class FlowProperty(models.Model):
     stereotype = models.OneToOneField('Stereotype')
     base__property = models.ForeignKey('Property')
     direction = models.ForeignKey('FlowDirection', 
-                                  )
+                                  help_text='Specifies if the property value is received from an external block ' +
+                                  '(direction="in"), transmitted to an external Block (direction="out") or both ' +
+                                  '(direction="inout").')
 
 
 class EndPathMultiplicity(models.Model):
@@ -482,9 +517,15 @@ class EndPathMultiplicity(models.Model):
     stereotype = models.OneToOneField('Stereotype')
     base__property = models.ForeignKey('Property')
     lower = models.ForeignKey('Integer', 
-                              )
+                              help_text='Gives the minimum number of values of the property at the end of the ' +
+                              'related bindingPath, for each object reached by navigation along the bindingPath ' +
+                              'from an instance of the block owning the property to which EndPathMultiplicity is ' +
+                              'applied')
     upper = models.ForeignKey('UnlimitedNatural', 
-                              )
+                              help_text='Gives the maximum number of values of the property at the end of the ' +
+                              'related bindingPath, for each object reached by navigation along the bindingPath ' +
+                              'from an instance of the block owning the property to which EndPathMultiplicity is ' +
+                              'applied.')
 
 
 class BoundReference(models.Model):
@@ -493,9 +534,12 @@ class BoundReference(models.Model):
 
     end_path_multiplicity = models.OneToOneField('EndPathMultiplicity')
     binding_path = models.ForeignKey('Property', 
-                                     )
+                                     help_text='Gives the propertyPath of the NestedConnectorEnd applied, if any, ' +
+                                     'to the boundEnd, appended to the role of the boundEnd.')
     bound_end = models.ForeignKey('ConnectorEnd', 
-                                  )
+                                  help_text='Gives a connector end of a binding connector opposite to the end ' +
+                                  'linked to the stereotyped property, or linked to a property that generalizes ' +
+                                  'the stereotyped one through redefinition.')
 
 
 class ProxyPort(models.Model):
@@ -694,7 +738,8 @@ class AdjunctProperty(models.Model):
     stereotype = models.OneToOneField('Stereotype')
     base__property = models.ForeignKey('Property')
     principal = models.ForeignKey('Element', 
-                                  )
+                                  help_text='Gives the element that determines the values of the property. Must ' +
+                                  'be a connector, call action, object node, variable, or parameter.')
 
 
 class Conform(models.Model):
@@ -848,15 +893,11 @@ class Viewpoint(models.Model):
     stereotype = models.OneToOneField('Stereotype')
     base__class = models.ForeignKey('Class')
     concern = models.CharField(max_length=255)
-    concern_list = models.ForeignKey('Comment', 
-                                     )
-    language = models.CharField(max_length=255, 
-                                )
-    method = models.ForeignKey('Behavior', 
-                               )
+    concern_list = models.ForeignKey('Comment', help_text='The interest of the stakeholders.')
+    language = models.CharField(max_length=255, help_text='The languages used to construct the viewpoint.')
+    method = models.ForeignKey('Behavior', help_text='The methods used to construct the views for this viewpoint.')
     presentation = models.CharField(max_length=255)
-    purpose = models.CharField(max_length=255, 
-                               )
+    purpose = models.CharField(max_length=255, help_text='The purpose addresses the stakeholder concerns.')
     stakeholder = models.ForeignKey('Stakeholder', help_text='Set of stakeholders.')
 
 

@@ -9,10 +9,8 @@ class Element(models.Model):
 
     __package__ = 'UML.CommonStructure'
 
-    owned_comment = models.ForeignKey('Comment', 
-                                      )
-    owned_element = models.ForeignKey('self', 
-                                      )
+    owned_comment = models.ForeignKey('Comment', help_text='The Comments owned by this Element.')
+    owned_element = models.ForeignKey('self', help_text='The Elements owned by this Element.')
     owner = models.ForeignKey('self', help_text='The Element that owns this Element.')
 
     class Meta:
@@ -36,9 +34,13 @@ class TemplateableElement(Element):
     __package__ = 'UML.CommonStructure'
 
     owned_template_signature = models.ForeignKey('TemplateSignature', 
-                                                 )
+                                                 help_text='The optional TemplateSignature specifying the formal ' +
+                                                 'TemplateParameters for this TemplateableElement. If a ' +
+                                                 'TemplateableElement has a TemplateSignature, then it is a ' +
+                                                 'template.')
     template_binding = models.ForeignKey('TemplateBinding', 
-                                         )
+                                         help_text='The optional TemplateBindings from this TemplateableElement ' +
+                                         'to one or more templates.')
 
     class Meta:
         abstract = True
@@ -64,16 +66,21 @@ class NamedElement(Element):
     __package__ = 'UML.CommonStructure'
 
     client_dependency = models.ForeignKey('Dependency', 
-                                          )
+                                          help_text='Indicates the Dependencies that reference this NamedElement ' +
+                                          'as a client.')
     name = models.CharField(max_length=255, help_text='The name of the NamedElement.')
     name_expression = models.ForeignKey('StringExpression', 
-                                        )
-    namespace = models.ForeignKey('Namespace', 
-                                  )
+                                        help_text='The StringExpression used to define the name of this ' +
+                                        'NamedElement.')
+    namespace = models.ForeignKey('Namespace', help_text='Specifies the Namespace that owns the NamedElement.')
     qualified_name = models.CharField(max_length=255, 
-                                      )
+                                      help_text='A name that allows the NamedElement to be identified within a ' +
+                                      'hierarchy of nested Namespaces. It is constructed from the names of the ' +
+                                      'containing Namespaces starting at the root of the hierarchy and ending with ' +
+                                      'the name of the NamedElement itself.')
     visibility = models.ForeignKey('VisibilityKind', 
-                                   )
+                                   help_text='Determines whether and how the NamedElement is visible outside its ' +
+                                   'owning Namespace.')
 
     class Meta:
         abstract = True
@@ -92,17 +99,19 @@ class Namespace(NamedElement):
     __package__ = 'UML.CommonStructure'
 
     element_import = models.ForeignKey('ElementImport', 
-                                       )
+                                       help_text='References the ElementImports owned by the Namespace.')
     imported_member = models.ForeignKey('PackageableElement', 
-                                        )
+                                        help_text='References the PackageableElements that are members of this ' +
+                                        'Namespace as a result of either PackageImports or ElementImports.')
     member = models.ForeignKey('NamedElement', 
-                               )
+                               help_text='A collection of NamedElements identifiable within the Namespace, either ' +
+                               'by being owned or by being introduced by importing or inheritance.')
     owned_member = models.ForeignKey('NamedElement', 
-                                     )
+                                     help_text='A collection of NamedElements owned by the Namespace.')
     owned_rule = models.ForeignKey('Constraint', 
-                                   )
+                                   help_text='Specifies a set of Constraints owned by this Namespace.')
     package_import = models.ForeignKey('PackageImport', 
-                                       )
+                                       help_text='References the PackageImports owned by the Namespace.')
 
     class Meta:
         abstract = True
@@ -140,11 +149,14 @@ class RedefinableElement(NamedElement):
 
     __package__ = 'UML.Classification'
 
-    is_leaf = models.BooleanField()
+    is_leaf = models.BooleanField(help_text='Indicates whether it is possible to further redefine a ' +
+                                  'RedefinableElement. If the value is true, then it is not possible to further ' +
+                                  'redefine the RedefinableElement.')
     redefined_element = models.ForeignKey('self', 
-                                          )
+                                          help_text='The RedefinableElement that is being redefined by this ' +
+                                          'element.')
     redefinition_context = models.ForeignKey('Classifier', 
-                                             )
+                                             help_text='The contexts that this element may be redefined from.')
 
     class Meta:
         abstract = True
@@ -170,9 +182,11 @@ class ParameterableElement(Element):
     __package__ = 'UML.CommonStructure'
 
     owning_template_parameter = models.ForeignKey('TemplateParameter', 
-                                                  )
+                                                  help_text='The formal TemplateParameter that owns this ' +
+                                                  'ParameterableElement.')
     template_parameter = models.ForeignKey('TemplateParameter', 
-                                           )
+                                           help_text='The TemplateParameter that exposes this ' +
+                                           'ParameterableElement as a formal parameter.')
 
     class Meta:
         abstract = True
@@ -212,8 +226,7 @@ class Type(PackageableElement):
 
     __package__ = 'UML.CommonStructure'
 
-    package = models.ForeignKey('Package', 
-                                )
+    package = models.ForeignKey('Package', help_text='Specifies the owning Package of this Type, if any.')
 
     class Meta:
         abstract = True
@@ -237,31 +250,38 @@ class Classifier(Namespace, Type, TemplateableElement, RedefinableElement):
     __package__ = 'UML.Classification'
 
     attribute = models.ForeignKey('Property', 
-                                  )
+                                  help_text='All of the Properties that are direct (i.e., not inherited or ' +
+                                  'imported) attributes of the Classifier.')
     collaboration_use = models.ForeignKey('CollaborationUse', 
-                                          )
+                                          help_text='The CollaborationUses owned by the Classifier.')
     feature = models.ForeignKey('Feature', 
-                                )
-    general = models.ForeignKey('self', 
-                                )
+                                help_text='Specifies each Feature directly defined in the classifier. Note that ' +
+                                'there may be members of the Classifier that are of the type Feature but are not ' +
+                                'included, e.g., inherited features.')
+    general = models.ForeignKey('self', help_text='The generalizing Classifiers for this Classifier.')
     generalization = models.ForeignKey('Generalization', 
-                                       )
+                                       help_text='The Generalization relationships for this Classifier. These ' +
+                                       'Generalizations navigate to more general Classifiers in the generalization ' +
+                                       'hierarchy.')
     inherited_member = models.ForeignKey('NamedElement', 
-                                         )
-    is_abstract = models.BooleanField()
-    is_final_specialization = models.BooleanField()
-    owned_use_case = models.ForeignKey('UseCase', 
-                                       )
+                                         help_text='All elements inherited by this Classifier from its general ' +
+                                         'Classifiers.')
+    is_abstract = models.BooleanField(help_text='If true, the Classifier can only be instantiated by ' +
+                                      'instantiating one of its specializations. An abstract Classifier is ' +
+                                      'intended to be used by other Classifiers e.g., as the target of ' +
+                                      'Associations or Generalizations.')
+    is_final_specialization = models.BooleanField(help_text='If true, the Classifier cannot be specialized.')
+    owned_use_case = models.ForeignKey('UseCase', help_text='The UseCases owned by this classifier.')
     powertype_extent = models.ForeignKey('GeneralizationSet', 
-                                         )
-    redefined_classifier = models.ForeignKey('self', 
-                                             )
+                                         help_text='The GeneralizationSet of which this Classifier is a power ' +
+                                         'type.')
+    redefined_classifier = models.ForeignKey('self', help_text='The Classifiers redefined by this Classifier.')
     representation = models.ForeignKey('CollaborationUse', 
-                                       )
-    substitution = models.ForeignKey('Substitution', 
-                                     )
+                                       help_text='A CollaborationUse which indicates the Collaboration that ' +
+                                       'represents this Classifier.')
+    substitution = models.ForeignKey('Substitution', help_text='The Substitutions owned by this Classifier.')
     use_case = models.ForeignKey('UseCase', 
-                                 )
+                                 help_text='The set of UseCases for which this Classifier is the subject.')
 
     def __init__(self, *args, **kwargs):
         super(Classifier).__init__(*args, **kwargs)
@@ -286,14 +306,14 @@ class StructuredClassifier(Classifier):
 
     __package__ = 'UML.StructuredClassifiers'
 
-    owned_attribute = models.ForeignKey('Property', 
-                                        )
-    owned_connector = models.ForeignKey('Connector', 
-                                        )
+    owned_attribute = models.ForeignKey('Property', help_text='The Properties owned by the StructuredClassifier.')
+    owned_connector = models.ForeignKey('Connector', help_text='The connectors owned by the StructuredClassifier.')
     part = models.ForeignKey('Property', 
-                             )
+                             help_text='The Properties specifying instances that the StructuredClassifier owns by ' +
+                             'composition. This collection is derived, selecting those owned Properties where ' +
+                             'isComposite is true.')
     role = models.ForeignKey('ConnectableElement', 
-                             )
+                             help_text='The roles that instances may play in this StructuredClassifier.')
 
     class Meta:
         abstract = True
@@ -313,8 +333,7 @@ class EncapsulatedClassifier(StructuredClassifier):
 
     __package__ = 'UML.StructuredClassifiers'
 
-    owned_port = models.ForeignKey('Port', 
-                                   )
+    owned_port = models.ForeignKey('Port', help_text='The Ports owned by the EncapsulatedClassifier.')
 
     class Meta:
         abstract = True
@@ -337,11 +356,13 @@ class BehavioredClassifier(Classifier):
     __package__ = 'UML.SimpleClassifiers'
 
     classifier_behavior = models.ForeignKey('Behavior', 
-                                            )
+                                            help_text='A Behavior that specifies the behavior of the ' +
+                                            'BehavioredClassifier itself.')
     interface_realization = models.ForeignKey('InterfaceRealization', 
-                                              )
-    owned_behavior = models.ForeignKey('Behavior', 
-                                       )
+                                              help_text='The set of InterfaceRealizations owned by the ' +
+                                              'BehavioredClassifier. Interface realizations reference the ' +
+                                              'Interfaces of which the BehavioredClassifier is an implementation.')
+    owned_behavior = models.ForeignKey('Behavior', help_text='Behaviors owned by a BehavioredClassifier.')
 
     class Meta:
         abstract = True
@@ -357,14 +378,18 @@ class Class(BehavioredClassifier, EncapsulatedClassifier):
     __package__ = 'UML.StructuredClassifiers'
 
     extension = models.ForeignKey('Extension', 
-                                  )
-    is_active = models.BooleanField()
+                                  help_text='This property is used when the Class is acting as a metaclass. It ' +
+                                  'references the Extensions that specify additional properties of the metaclass. ' +
+                                  'The property is derived from the Extensions whose memberEnds are typed by the ' +
+                                  'Class.')
+    is_active = models.BooleanField(help_text='Determines whether an object specified by this Class is active or ' +
+                                    'not. If true, then the owning Class is referred to as an active Class. If ' +
+                                    'false, then such a Class is referred to as a passive Class.')
     nested_classifier = models.ForeignKey('Classifier', 
-                                          )
-    owned_operation = models.ForeignKey('Operation', 
-                                        )
-    owned_reception = models.ForeignKey('Reception', 
-                                        )
+                                          help_text='The Classifiers owned by the Class that are not ' +
+                                          'ownedBehaviors.')
+    owned_operation = models.ForeignKey('Operation', help_text='The Operations owned by the Class.')
+    owned_reception = models.ForeignKey('Reception', help_text='The Receptions owned by the Class.')
 
     def __init__(self, *args, **kwargs):
         super(Class).__init__(*args, **kwargs)
@@ -388,9 +413,12 @@ class Stereotype(models.Model):
 
     class_ = models.OneToOneField('Class')
     icon = models.ForeignKey('Image', 
-                             )
+                             help_text='Stereotype can change the graphical appearance of the extended model ' +
+                             'element by using attached icons. When this association is not null, it references ' +
+                             'the location of the icon content to be displayed within diagrams presenting the ' +
+                             'extended model elements.')
     profile = models.ForeignKey('Profile', 
-                                )
+                                help_text='The profile that directly or indirectly contains this stereotype.')
 
     def containing_profile(self):
         """
@@ -410,21 +438,24 @@ class ActivityNode(RedefinableElement):
     __package__ = 'UML.Activities'
 
     activity = models.ForeignKey('Activity', 
-                                 )
-    in_group = models.ForeignKey('ActivityGroup', 
-                                 )
+                                 help_text='The Activity containing the ActivityNode, if it is directly owned by ' +
+                                 'an Activity.')
+    in_group = models.ForeignKey('ActivityGroup', help_text='ActivityGroups containing the ActivityNode.')
     in_interruptible_region = models.ForeignKey('InterruptibleActivityRegion', 
-                                                )
+                                                help_text='InterruptibleActivityRegions containing the ' +
+                                                'ActivityNode.')
     in_partition = models.ForeignKey('ActivityPartition', 
-                                     )
+                                     help_text='ActivityPartitions containing the ActivityNode.')
     in_structured_node = models.ForeignKey('StructuredActivityNode', 
-                                           )
+                                           help_text='The StructuredActivityNode containing the ActvityNode, if ' +
+                                           'it is directly owned by a StructuredActivityNode.')
     incoming = models.ForeignKey('ActivityEdge', 
-                                 )
+                                 help_text='ActivityEdges that have the ActivityNode as their target.')
     outgoing = models.ForeignKey('ActivityEdge', 
-                                 )
+                                 help_text='ActivityEdges that have the ActivityNode as their source.')
     redefined_node = models.ForeignKey('self', 
-                                       )
+                                       help_text='ActivityNodes from a generalization of the Activity ' +
+                                       'containining this ActivityNode that are redefined by this ActivityNode.')
 
     class Meta:
         abstract = True
@@ -443,7 +474,8 @@ class ExecutableNode(ActivityNode):
     __package__ = 'UML.Activities'
 
     handler = models.ForeignKey('ExceptionHandler', 
-                                )
+                                help_text='A set of ExceptionHandlers that are examined if an exception ' +
+                                'propagates out of the ExceptionNode.')
 
     class Meta:
         abstract = True
@@ -460,16 +492,22 @@ class Action(ExecutableNode):
     __package__ = 'UML.Actions'
 
     context = models.ForeignKey('Classifier', 
-                                )
+                                help_text='The context Classifier of the Behavior that contains this Action, or ' +
+                                'the Behavior itself if it has no context.')
     input_ = models.ForeignKey('InputPin', 
-                               )
-    is_locally_reentrant = models.BooleanField()
+                               help_text='The ordered set of InputPins representing the inputs to the Action.')
+    is_locally_reentrant = models.BooleanField(help_text='If true, the Action can begin a new, concurrent ' +
+                                               'execution, even if there is already another execution of the ' +
+                                               'Action ongoing. If false, the Action cannot begin a new execution ' +
+                                               'until any previous execution has completed.')
     local_postcondition = models.ForeignKey('Constraint', 
-                                            )
+                                            help_text='A Constraint that must be satisfied when execution of the ' +
+                                            'Action is completed.')
     local_precondition = models.ForeignKey('Constraint', 
-                                           )
+                                           help_text='A Constraint that must be satisfied when execution of the ' +
+                                           'Action is started.')
     output = models.ForeignKey('OutputPin', 
-                               )
+                               help_text='The ordered set of OutputPins representing outputs from the Action.')
 
     class Meta:
         abstract = True
@@ -492,9 +530,10 @@ class StructuralFeatureAction(Action):
     __package__ = 'UML.Actions'
 
     object_ = models.ForeignKey('InputPin', 
-                                )
+                                help_text='The InputPin from which the object whose StructuralFeature is to be ' +
+                                'read or written is obtained.')
     structural_feature = models.ForeignKey('StructuralFeature', 
-                                           )
+                                           help_text='The StructuralFeature to be read or written.')
 
     class Meta:
         abstract = True
@@ -508,8 +547,7 @@ class ReadStructuralFeatureAction(StructuralFeatureAction):
 
     __package__ = 'UML.Actions'
 
-    result = models.ForeignKey('OutputPin', 
-                               )
+    result = models.ForeignKey('OutputPin', help_text='The OutputPin on which the result values are placed.')
 
 
 class Relationship(Element):
@@ -520,8 +558,7 @@ class Relationship(Element):
 
     __package__ = 'UML.CommonStructure'
 
-    related_element = models.ForeignKey('Element', 
-                                        )
+    related_element = models.ForeignKey('Element', help_text='Specifies the elements related by the Relationship.')
 
     class Meta:
         abstract = True
@@ -535,10 +572,8 @@ class DirectedRelationship(Relationship):
 
     __package__ = 'UML.CommonStructure'
 
-    source = models.ForeignKey('Element', 
-                               )
-    target = models.ForeignKey('Element', 
-                               )
+    source = models.ForeignKey('Element', help_text='Specifies the source Element(s) of the DirectedRelationship.')
+    target = models.ForeignKey('Element', help_text='Specifies the target Element(s) of the DirectedRelationship.')
 
     class Meta:
         abstract = True
@@ -556,9 +591,14 @@ class Dependency(DirectedRelationship, PackageableElement):
     __package__ = 'UML.CommonStructure'
 
     client = models.ForeignKey('NamedElement', 
-                               )
+                               help_text='The Element(s) dependent on the supplier Element(s). In some cases ' +
+                               '(such as a trace Abstraction) the assignment of direction (that is, the ' +
+                               'designation of the client Element) is at the discretion of the modeler and is a ' +
+                               'stipulation.')
     supplier = models.ForeignKey('NamedElement', 
-                                 )
+                                 help_text='The Element(s) on which the client Element(s) depend in some respect. ' +
+                                 'The modeler may stipulate a sense of Dependency direction suitable for their ' +
+                                 'domain.')
 
 
 class Abstraction(models.Model):
@@ -572,7 +612,11 @@ class Abstraction(models.Model):
 
     dependency = models.OneToOneField('Dependency')
     mapping = models.ForeignKey('OpaqueExpression', 
-                                )
+                                help_text='An OpaqueExpression that states the abstraction relationship between ' +
+                                'the supplier(s) and the client(s). In some cases, such as derivation, it is ' +
+                                'usually formal and unidirectional; in other cases, such as trace, it is usually ' +
+                                'informal and bidirectional. The mapping expression is optional and may be omitted ' +
+                                'if the precise relationship between the Elements is not specified.')
 
 
 class Realization(models.Model):
@@ -600,9 +644,11 @@ class ComponentRealization(models.Model):
 
     realization = models.OneToOneField('Realization')
     abstraction = models.ForeignKey('Component', 
-                                    )
+                                    help_text='The Component that owns this ComponentRealization and which is ' +
+                                    'implemented by its realizing Classifiers.')
     realizing_classifier = models.ForeignKey('Classifier', 
-                                             )
+                                             help_text='The Classifiers that are involved in the implementation ' +
+                                             'of the Component that owns this Realization.')
 
 
 class LinkEndData(Element):
@@ -617,11 +663,14 @@ class LinkEndData(Element):
     __package__ = 'UML.Actions'
 
     end = models.ForeignKey('Property', 
-                            )
+                            help_text='The Association"end"for"which"this"LinkEndData"specifies"values.')
     qualifier = models.ForeignKey('QualifierValue', 
-                                  )
+                                  help_text='A set of QualifierValues used to provide values for the qualifiers ' +
+                                  'of the end.')
     value = models.ForeignKey('InputPin', 
-                              )
+                              help_text='The InputPin that provides the specified value for the given end. This ' +
+                              'InputPin is omitted if the LinkEndData specifies the "open" end for a ' +
+                              'ReadLinkAction.')
 
     def all_pins(self):
         """
@@ -640,10 +689,8 @@ class DataType(Classifier):
 
     __package__ = 'UML.SimpleClassifiers'
 
-    owned_attribute = models.ForeignKey('Property', 
-                                        )
-    owned_operation = models.ForeignKey('Operation', 
-                                        )
+    owned_attribute = models.ForeignKey('Property', help_text='The attributes owned by the DataType.')
+    owned_operation = models.ForeignKey('Operation', help_text='The Operations owned by the DataType.')
 
 
 class Enumeration(models.Model):
@@ -656,7 +703,7 @@ class Enumeration(models.Model):
 
     data_type = models.OneToOneField('DataType')
     owned_literal = models.ForeignKey('EnumerationLiteral', 
-                                      )
+                                      help_text='The ordered set of literals owned by this Enumeration.')
 
 
 class CallConcurrencyKind(models.Model):
@@ -697,11 +744,13 @@ class TemplateSignature(Element):
     __package__ = 'UML.CommonStructure'
 
     owned_parameter = models.ForeignKey('TemplateParameter', 
-                                        )
+                                        help_text='The formal parameters that are owned by this ' +
+                                        'TemplateSignature.')
     parameter = models.ForeignKey('TemplateParameter', 
-                                  )
+                                  help_text='The ordered set of all formal TemplateParameters for this ' +
+                                  'TemplateSignature.')
     template = models.ForeignKey('TemplateableElement', 
-                                 )
+                                 help_text='The TemplateableElement that owns this TemplateSignature.')
 
 
 class RedefinableTemplateSignature(RedefinableElement):
@@ -714,9 +763,11 @@ class RedefinableTemplateSignature(RedefinableElement):
 
     template_signature = models.OneToOneField('TemplateSignature')
     extended_signature = models.ForeignKey('self', 
-                                           )
+                                           help_text='The signatures extended by this ' +
+                                           'RedefinableTemplateSignature.')
     inherited_parameter = models.ForeignKey('TemplateParameter', 
-                                            )
+                                            help_text='The formal template parameters of the extended ' +
+                                            'signatures.')
 
     def __init__(self, *args, **kwargs):
         super(RedefinableTemplateSignature).__init__(*args, **kwargs)
@@ -853,15 +904,17 @@ class ActivityGroup(NamedElement):
     __package__ = 'UML.Activities'
 
     contained_edge = models.ForeignKey('ActivityEdge', 
-                                       )
+                                       help_text='ActivityEdges immediately contained in the ActivityGroup.')
     contained_node = models.ForeignKey('ActivityNode', 
-                                       )
+                                       help_text='ActivityNodes immediately contained in the ActivityGroup.')
     in_activity = models.ForeignKey('Activity', 
-                                    )
+                                    help_text='The Activity containing the ActivityGroup, if it is directly owned ' +
+                                    'by an Activity.')
     subgroup = models.ForeignKey('self', 
-                                 )
+                                 help_text='Other ActivityGroups immediately contained in this ActivityGroup.')
     super_group = models.ForeignKey('self', 
-                                    )
+                                    help_text='The ActivityGroup immediately containing this ActivityGroup, if it ' +
+                                    'is directly owned by another ActivityGroup.')
 
     class Meta:
         abstract = True
@@ -892,16 +945,21 @@ class StructuredActivityNode(Namespace, ActivityGroup, Action):
     __package__ = 'UML.Actions'
 
     edge = models.ForeignKey('ActivityEdge', 
-                             )
-    must_isolate = models.BooleanField()
+                             help_text='The ActivityEdges immediately contained in the StructuredActivityNode.')
+    must_isolate = models.BooleanField(help_text='If true, then any object used by an Action within the ' +
+                                       'StructuredActivityNode cannot be accessed by any Action outside the node ' +
+                                       'until the StructuredActivityNode as a whole completes. Any concurrent ' +
+                                       'Actions that would result in accessing such objects are required to have ' +
+                                       'their execution deferred until the completion of the ' +
+                                       'StructuredActivityNode.')
     node = models.ForeignKey('ActivityNode', 
-                             )
+                             help_text='The ActivityNodes immediately contained in the StructuredActivityNode.')
     structured_node_input = models.ForeignKey('InputPin', 
-                                              )
+                                              help_text='The InputPins owned by the StructuredActivityNode.')
     structured_node_output = models.ForeignKey('OutputPin', 
-                                               )
+                                               help_text='The OutputPins owned by the StructuredActivityNode.')
     variable = models.ForeignKey('Variable', 
-                                 )
+                                 help_text='The Variables defined in the scope of the StructuredActivityNode.')
 
     def __init__(self, *args, **kwargs):
         super(StructuredActivityNode).__init__(*args, **kwargs)
@@ -925,18 +983,30 @@ class LoopNode(models.Model):
 
     structured_activity_node = models.OneToOneField('StructuredActivityNode')
     body_output = models.ForeignKey('OutputPin', 
-                                    )
+                                    help_text='The OutputPins on Actions within the bodyPart, the values of which ' +
+                                    'are moved to the loopVariable OutputPins after the completion of each ' +
+                                    'execution of the bodyPart, before the next iteration of the loop begins or ' +
+                                    'before the loop exits.')
     body_part = models.ForeignKey('ExecutableNode', 
-                                  )
+                                  help_text='The set of ExecutableNodes that perform the repetitive computations ' +
+                                  'of the loop. The bodyPart is executed as long as the test section produces a ' +
+                                  'true value.')
     decider = models.ForeignKey('OutputPin', 
-                                )
-    is_tested_first = models.BooleanField()
+                                help_text='An OutputPin on an Action in the test section whose Boolean value ' +
+                                'determines whether to continue executing the loop bodyPart.')
+    is_tested_first = models.BooleanField(help_text='If true, the test is performed before the first execution of ' +
+                                          'the bodyPart. If false, the bodyPart is executed once before the test ' +
+                                          'is performed.')
     loop_variable = models.ForeignKey('OutputPin', 
-                                      )
+                                      help_text='A list of OutputPins that hold the values of the loop variables ' +
+                                      'during an execution of the loop. When the test fails, the values are moved ' +
+                                      'to the result OutputPins of the loop.')
     setup_part = models.ForeignKey('ExecutableNode', 
-                                   )
+                                   help_text='The set of ExecutableNodes executed before the first iteration of ' +
+                                   'the loop, in order to initialize values or perform other setup computations.')
     test = models.ForeignKey('ExecutableNode', 
-                             )
+                             help_text='The set of ExecutableNodes executed in order to provide the test result ' +
+                             'for the loop.')
 
     def __init__(self, *args, **kwargs):
         super(LoopNode).__init__(*args, **kwargs)
@@ -980,8 +1050,12 @@ class LinkEndCreationData(models.Model):
 
     link_end_data = models.OneToOneField('LinkEndData')
     insert_at = models.ForeignKey('InputPin', 
-                                  )
-    is_replace_all = models.BooleanField()
+                                  help_text='For ordered Association ends, the InputPin that provides the ' +
+                                  'position where the new link should be inserted or where an existing link should ' +
+                                  'be moved to. The type of the insertAt InputPin is UnlimitedNatural, but the ' +
+                                  'input cannot be zero. It is omitted for Association ends that are not ordered.')
+    is_replace_all = models.BooleanField(help_text='Specifies whether the existing links emanating from the ' +
+                                         'object on this end should be destroyed before creating a new link.')
 
     def all_pins(self):
         """
@@ -1024,22 +1098,26 @@ class Transition(Namespace, RedefinableElement):
 
     __package__ = 'UML.StateMachines'
 
-    container = models.ForeignKey('Region', 
-                                  )
+    container = models.ForeignKey('Region', help_text='Designates the Region that owns this Transition.')
     effect = models.ForeignKey('Behavior', 
-                               )
+                               help_text='Specifies an optional behavior to be performed when the Transition ' +
+                               'fires.')
     guard = models.ForeignKey('Constraint', 
-                              )
-    kind = models.ForeignKey('TransitionKind', 
-                             )
+                              help_text='A guard is a Constraint that provides a fine-grained control over the ' +
+                              'firing of the Transition. The guard is evaluated when an Event occurrence is ' +
+                              'dispatched by the StateMachine. If the guard is true at that time, the Transition ' +
+                              'may be enabled, otherwise, it is disabled. Guards should be pure expressions ' +
+                              'without side effects. Guard expressions with side effects are ill formed.')
+    kind = models.ForeignKey('TransitionKind', help_text='Indicates the precise type of the Transition.')
     redefined_transition = models.ForeignKey('self', 
-                                             )
+                                             help_text='The Transition that is redefined by this Transition.')
     source = models.ForeignKey('Vertex', 
-                               )
+                               help_text='Designates the originating Vertex (State or Pseudostate) of the ' +
+                               'Transition.')
     target = models.ForeignKey('Vertex', 
-                               )
-    trigger = models.ForeignKey('Trigger', 
-                                )
+                               help_text='Designates the target Vertex that is reached when the Transition is ' +
+                               'taken.')
+    trigger = models.ForeignKey('Trigger', help_text='Specifies the Triggers that may fire the transition.')
 
     def __init__(self, *args, **kwargs):
         super(Transition).__init__(*args, **kwargs)
@@ -1061,7 +1139,7 @@ class InstanceValue(ValueSpecification):
     __package__ = 'UML.Classification'
 
     instance = models.ForeignKey('InstanceSpecification', 
-                                 )
+                                 help_text='The InstanceSpecification that represents the specified value.')
 
 
 class TemplateParameterSubstitution(Element):
@@ -1073,13 +1151,17 @@ class TemplateParameterSubstitution(Element):
     __package__ = 'UML.CommonStructure'
 
     actual = models.ForeignKey('ParameterableElement', 
-                               )
+                               help_text='The ParameterableElement that is the actual parameter for this ' +
+                               'TemplateParameterSubstitution.')
     formal = models.ForeignKey('TemplateParameter', 
-                               )
+                               help_text='The formal TemplateParameter that is associated with this ' +
+                               'TemplateParameterSubstitution.')
     owned_actual = models.ForeignKey('ParameterableElement', 
-                                     )
+                                     help_text='The ParameterableElement that is owned by this ' +
+                                     'TemplateParameterSubstitution as its actual parameter.')
     template_binding = models.ForeignKey('TemplateBinding', 
-                                         )
+                                         help_text='The TemplateBinding that owns this ' +
+                                         'TemplateParameterSubstitution.')
 
 
 class AcceptEventAction(Action):
@@ -1090,11 +1172,14 @@ class AcceptEventAction(Action):
 
     __package__ = 'UML.Actions'
 
-    is_unmarshall = models.BooleanField()
+    is_unmarshall = models.BooleanField(help_text='Indicates whether there is a single OutputPin for a ' +
+                                        'SignalEvent occurrence, or multiple OutputPins for attribute values of ' +
+                                        'the instance of the Signal associated with a SignalEvent occurrence.')
     result = models.ForeignKey('OutputPin', 
-                               )
+                               help_text='OutputPins holding the values received from an Event occurrence.')
     trigger = models.ForeignKey('Trigger', 
-                                )
+                                help_text='The Triggers specifying the Events of which the AcceptEventAction ' +
+                                'waits for occurrences.')
 
 
 class ReclassifyObjectAction(Action):
@@ -1105,13 +1190,15 @@ class ReclassifyObjectAction(Action):
 
     __package__ = 'UML.Actions'
 
-    is_replace_all = models.BooleanField()
+    is_replace_all = models.BooleanField(help_text='Specifies whether existing Classifiers should be removed ' +
+                                         'before adding the new Classifiers.')
     new_classifier = models.ForeignKey('Classifier', 
-                                       )
-    object_ = models.ForeignKey('InputPin', 
-                                )
+                                       help_text='A set of Classifiers to be added to the Classifiers of the ' +
+                                       'given object.')
+    object_ = models.ForeignKey('InputPin', help_text='The InputPin that holds the object to be reclassified.')
     old_classifier = models.ForeignKey('Classifier', 
-                                       )
+                                       help_text='A set of Classifiers to be removed from the Classifiers of the ' +
+                                       'given object.')
 
 
 class DeploymentTarget(NamedElement):
@@ -1122,9 +1209,9 @@ class DeploymentTarget(NamedElement):
     __package__ = 'UML.Deployments'
 
     deployed_element = models.ForeignKey('PackageableElement', 
-                                         )
-    deployment = models.ForeignKey('Deployment', 
-                                   )
+                                         help_text='The set of elements that are manifested in an Artifact that ' +
+                                         'is involved in Deployment to a DeploymentTarget.')
+    deployment = models.ForeignKey('Deployment', help_text='The set of Deployments for a DeploymentTarget.')
 
     class Meta:
         abstract = True
@@ -1147,8 +1234,7 @@ class Node(DeploymentTarget):
     __package__ = 'UML.Deployments'
 
     class_ = models.OneToOneField('Class')
-    nested_node = models.ForeignKey('self', 
-                                    )
+    nested_node = models.ForeignKey('self', help_text='The Nodes that are defined (nested) within the Node.')
 
 
 class ExecutionEnvironment(models.Model):
@@ -1173,8 +1259,14 @@ class DurationObservation(Observation):
     __package__ = 'UML.Values'
 
     event = models.ForeignKey('NamedElement', 
-                              )
-    first_event = models.BooleanField()
+                              help_text='The DurationObservation is determined as the duration between the ' +
+                              'entering or exiting of a single event Element during execution, or the ' +
+                              'entering/exiting of one event Element and the entering/exiting of a second.')
+    first_event = models.BooleanField(help_text='The value of firstEvent[i] is related to event[i] (where i is 1 ' +
+                                      'or 2). If firstEvent[i] is true, then the corresponding observation event ' +
+                                      'is the first time instant the execution enters event[i]. If firstEvent[i] ' +
+                                      'is false, then the corresponding observation event is the time instant the ' +
+                                      'execution exits event[i].')
 
 
 class VariableAction(Action):
@@ -1199,8 +1291,7 @@ class ReadVariableAction(VariableAction):
 
     __package__ = 'UML.Actions'
 
-    result = models.ForeignKey('OutputPin', 
-                               )
+    result = models.ForeignKey('OutputPin', help_text='The OutputPin on which the result values are placed.')
 
 
 class Lifeline(NamedElement):
@@ -1213,15 +1304,17 @@ class Lifeline(NamedElement):
     __package__ = 'UML.Interactions'
 
     covered_by = models.ForeignKey('InteractionFragment', 
-                                   )
+                                   help_text='References the InteractionFragments in which this Lifeline takes ' +
+                                   'part.')
     decomposed_as = models.ForeignKey('PartDecomposition', 
-                                      )
-    interaction = models.ForeignKey('Interaction', 
-                                    )
+                                      help_text='References the Interaction that represents the decomposition.')
+    interaction = models.ForeignKey('Interaction', help_text='References the Interaction enclosing this Lifeline.')
     represents = models.ForeignKey('ConnectableElement', 
-                                   )
+                                   help_text='References the ConnectableElement within the classifier that ' +
+                                   'contains the enclosing interaction.')
     selector = models.ForeignKey('ValueSpecification', 
-                                 )
+                                 help_text='If the referenced ConnectableElement is multivalued, then this ' +
+                                 'specifies the specific individual part within that set.')
 
 
 class DeployedArtifact(NamedElement):
@@ -1250,15 +1343,22 @@ class Artifact(Classifier, DeployedArtifact):
     __package__ = 'UML.Deployments'
 
     file_name = models.CharField(max_length=255, 
-                                 )
+                                 help_text='A concrete name that is used to refer to the Artifact in a physical ' +
+                                 'context. Example: file system name, universal resource locator.')
     manifestation = models.ForeignKey('Manifestation', 
-                                      )
+                                      help_text='The set of model elements that are manifested in the Artifact. ' +
+                                      'That is, these model elements are utilized in the construction (or ' +
+                                      'generation) of the artifact.')
     nested_artifact = models.ForeignKey('self', 
-                                        )
+                                        help_text='The Artifacts that are defined (nested) within the Artifact. ' +
+                                        'The association is a specialization of the ownedMember association from ' +
+                                        'Namespace to NamedElement.')
     owned_attribute = models.ForeignKey('Property', 
-                                        )
+                                        help_text='The attributes or association ends defined for the Artifact. ' +
+                                        'The association is a specialization of the ownedMember association.')
     owned_operation = models.ForeignKey('Operation', 
-                                        )
+                                        help_text='The Operations defined for the Artifact. The association is a ' +
+                                        'specialization of the ownedMember association.')
 
 
 class ControlNode(ActivityNode):
@@ -1293,25 +1393,34 @@ class ActivityEdge(RedefinableElement):
     __package__ = 'UML.Activities'
 
     activity = models.ForeignKey('Activity', 
-                                 )
+                                 help_text='The Activity containing the ActivityEdge, if it is directly owned by ' +
+                                 'an Activity.')
     guard = models.ForeignKey('ValueSpecification', 
-                              )
-    in_group = models.ForeignKey('ActivityGroup', 
-                                 )
+                              help_text='A ValueSpecification that is evaluated to determine if a token can ' +
+                              'traverse the ActivityEdge. If an ActivityEdge has no guard, then there is no ' +
+                              'restriction on tokens traversing the edge.')
+    in_group = models.ForeignKey('ActivityGroup', help_text='ActivityGroups containing the ActivityEdge.')
     in_partition = models.ForeignKey('ActivityPartition', 
-                                     )
+                                     help_text='ActivityPartitions containing the ActivityEdge.')
     in_structured_node = models.ForeignKey('StructuredActivityNode', 
-                                           )
+                                           help_text='The StructuredActivityNode containing the ActivityEdge, if ' +
+                                           'it is owned by a StructuredActivityNode.')
     interrupts = models.ForeignKey('InterruptibleActivityRegion', 
-                                   )
+                                   help_text='The InterruptibleActivityRegion for which this ActivityEdge is an ' +
+                                   'interruptingEdge.')
     redefined_edge = models.ForeignKey('self', 
-                                       )
+                                       help_text='ActivityEdges from a generalization of the Activity containing ' +
+                                       'this ActivityEdge that are redefined by this ActivityEdge.')
     source = models.ForeignKey('ActivityNode', 
-                               )
+                               help_text='The ActivityNode from which tokens are taken when they traverse the ' +
+                               'ActivityEdge.')
     target = models.ForeignKey('ActivityNode', 
-                               )
+                               help_text='The ActivityNode to which tokens are put when they traverse the ' +
+                               'ActivityEdge.')
     weight = models.ForeignKey('ValueSpecification', 
-                               )
+                               help_text='The minimum number of tokens that must traverse the ActivityEdge at the ' +
+                               'same time. If no weight is specified, this is equivalent to specifying a constant ' +
+                               'value of 1.')
 
     class Meta:
         abstract = True
@@ -1330,12 +1439,15 @@ class ObjectFlow(ActivityEdge):
 
     __package__ = 'UML.Activities'
 
-    is_multicast = models.BooleanField()
-    is_multireceive = models.BooleanField()
+    is_multicast = models.BooleanField(help_text='Indicates whether the objects in the ObjectFlow are passed by ' +
+                                       'multicasting.')
+    is_multireceive = models.BooleanField(help_text='Indicates whether the objects in the ObjectFlow are gathered ' +
+                                          'from respondents to multicasting.')
     selection = models.ForeignKey('Behavior', 
-                                  )
+                                  help_text='A Behavior used to select tokens from a source ObjectNode.')
     transformation = models.ForeignKey('Behavior', 
-                                       )
+                                       help_text='A Behavior used to change or replace object tokens flowing ' +
+                                       'along the ObjectFlow.')
 
 
 class InteractionFragment(NamedElement):
@@ -1348,13 +1460,15 @@ class InteractionFragment(NamedElement):
     __package__ = 'UML.Interactions'
 
     covered = models.ForeignKey('Lifeline', 
-                                )
+                                help_text='References the Lifelines that the InteractionFragment involves.')
     enclosing_interaction = models.ForeignKey('Interaction', 
-                                              )
+                                              help_text='The Interaction enclosing this InteractionFragment.')
     enclosing_operand = models.ForeignKey('InteractionOperand', 
-                                          )
+                                          help_text='The operand enclosing this InteractionFragment (they may ' +
+                                          'nest recursively).')
     general_ordering = models.ForeignKey('GeneralOrdering', 
-                                         )
+                                         help_text='The general ordering relationships contained in this ' +
+                                         'fragment.')
 
     class Meta:
         abstract = True
@@ -1369,9 +1483,11 @@ class OccurrenceSpecification(InteractionFragment):
     __package__ = 'UML.Interactions'
 
     to_after = models.ForeignKey('GeneralOrdering', 
-                                 )
+                                 help_text='References the GeneralOrderings that specify EventOcurrences that ' +
+                                 'must occur after this OccurrenceSpecification.')
     to_before = models.ForeignKey('GeneralOrdering', 
-                                  )
+                                  help_text='References the GeneralOrderings that specify EventOcurrences that ' +
+                                  'must occur before this OccurrenceSpecification.')
 
     def __init__(self, *args, **kwargs):
         super(OccurrenceSpecification).__init__(*args, **kwargs)
@@ -1387,7 +1503,8 @@ class ExecutionOccurrenceSpecification(models.Model):
 
     occurrence_specification = models.OneToOneField('OccurrenceSpecification')
     execution = models.ForeignKey('ExecutionSpecification', 
-                                  )
+                                  help_text='References the execution specification describing the execution that ' +
+                                  'is started or finished at this execution event.')
 
 
 class ExecutionSpecification(InteractionFragment):
@@ -1401,9 +1518,11 @@ class ExecutionSpecification(InteractionFragment):
     __package__ = 'UML.Interactions'
 
     finish = models.ForeignKey('OccurrenceSpecification', 
-                               )
+                               help_text='References the OccurrenceSpecification that designates the finish of ' +
+                               'the Action or Behavior.')
     start = models.ForeignKey('OccurrenceSpecification', 
-                              )
+                              help_text='References the OccurrenceSpecification that designates the start of the ' +
+                              'Action or Behavior.')
 
     class Meta:
         abstract = True
@@ -1430,11 +1549,12 @@ class Constraint(PackageableElement):
     __package__ = 'UML.CommonStructure'
 
     constrained_element = models.ForeignKey('Element', 
-                                            )
-    context = models.ForeignKey('Namespace', 
-                                )
+                                            help_text='The ordered set of Elements referenced by this ' +
+                                            'Constraint.')
+    context = models.ForeignKey('Namespace', help_text='Specifies the Namespace that owns the Constraint.')
     specification = models.ForeignKey('ValueSpecification', 
-                                      )
+                                      help_text='A condition that must be true when evaluated in order for the ' +
+                                      'Constraint to be satisfied.')
 
 
 class Feature(RedefinableElement):
@@ -1445,8 +1565,9 @@ class Feature(RedefinableElement):
     __package__ = 'UML.Classification'
 
     featuring_classifier = models.ForeignKey('Classifier', 
-                                             )
-    is_static = models.BooleanField()
+                                             help_text='The Classifiers that have this Feature as a feature.')
+    is_static = models.BooleanField(help_text='Specifies whether this Feature characterizes individual instances ' +
+                                    'classified by the Classifier (false) or the Classifier itself (true).')
 
     class Meta:
         abstract = True
@@ -1463,16 +1584,25 @@ class BehavioralFeature(Feature, Namespace):
     __package__ = 'UML.Classification'
 
     concurrency = models.ForeignKey('CallConcurrencyKind', 
-                                    )
-    is_abstract = models.BooleanField()
+                                    help_text='Specifies the semantics of concurrent calls to the same passive ' +
+                                    'instance (i.e., an instance originating from a Class with isActive being ' +
+                                    'false). Active instances control access to their own BehavioralFeatures.')
+    is_abstract = models.BooleanField(help_text='If true, then the BehavioralFeature does not have an ' +
+                                      'implementation, and one must be supplied by a more specific Classifier. If ' +
+                                      'false, the BehavioralFeature must have an implementation in the Classifier ' +
+                                      'or one must be inherited.')
     method = models.ForeignKey('Behavior', 
-                               )
+                               help_text='A Behavior that implements the BehavioralFeature. There may be at most ' +
+                               'one Behavior for a particular pairing of a Classifier (as owner of the Behavior) ' +
+                               'and a BehavioralFeature (as specification of the Behavior).')
     owned_parameter = models.ForeignKey('Parameter', 
-                                        )
+                                        help_text='The ordered set of formal Parameters of this ' +
+                                        'BehavioralFeature.')
     owned_parameter_set = models.ForeignKey('ParameterSet', 
-                                            )
+                                            help_text='The ParameterSets owned by this BehavioralFeature.')
     raised_exception = models.ForeignKey('Type', 
-                                         )
+                                         help_text='The Types representing exceptions that may be raised during ' +
+                                         'an invocation of this BehavioralFeature.')
 
     class Meta:
         abstract = True
@@ -1494,20 +1624,17 @@ class Message(NamedElement):
     __package__ = 'UML.Interactions'
 
     argument = models.ForeignKey('ValueSpecification', help_text='The arguments of the Message.')
-    connector = models.ForeignKey('Connector', 
-                                  )
-    interaction = models.ForeignKey('Interaction', 
-                                    )
+    connector = models.ForeignKey('Connector', help_text='The Connector on which this Message is sent.')
+    interaction = models.ForeignKey('Interaction', help_text='The enclosing Interaction owning the Message.')
     message_kind = models.ForeignKey('MessageKind', 
-                                     )
-    message_sort = models.ForeignKey('MessageSort', 
-                                     )
-    receive_event = models.ForeignKey('MessageEnd', 
-                                      )
-    send_event = models.ForeignKey('MessageEnd', 
-                                   )
+                                     help_text='The derived kind of the Message (complete, lost, found, or ' +
+                                     'unknown).')
+    message_sort = models.ForeignKey('MessageSort', help_text='The sort of communication reflected by the Message.')
+    receive_event = models.ForeignKey('MessageEnd', help_text='References the Receiving of the Message.')
+    send_event = models.ForeignKey('MessageEnd', help_text='References the Sending of the Message.')
     signature = models.ForeignKey('NamedElement', 
-                                  )
+                                  help_text='The signature of the Message is the specification of its content. It ' +
+                                  'refers either an Operation or a Signal.')
 
     def is_distinguishable_from(self):
         """
@@ -1528,16 +1655,11 @@ class InteractionUse(InteractionFragment):
 
     __package__ = 'UML.Interactions'
 
-    actual_gate = models.ForeignKey('Gate', 
-                                    )
-    argument = models.ForeignKey('ValueSpecification', 
-                                 )
-    refers_to = models.ForeignKey('Interaction', 
-                                  )
-    return_value = models.ForeignKey('ValueSpecification', 
-                                     )
-    return_value_recipient = models.ForeignKey('Property', 
-                                               )
+    actual_gate = models.ForeignKey('Gate', help_text='The actual gates of the InteractionUse.')
+    argument = models.ForeignKey('ValueSpecification', help_text='The actual arguments of the Interaction.')
+    refers_to = models.ForeignKey('Interaction', help_text='Refers to the Interaction that defines its meaning.')
+    return_value = models.ForeignKey('ValueSpecification', help_text='The value of the executed Interaction.')
+    return_value_recipient = models.ForeignKey('Property', help_text='The recipient of the return value.')
 
 
 class PartDecomposition(models.Model):
@@ -1565,21 +1687,23 @@ class Package(PackageableElement, TemplateableElement, Namespace):
     __package__ = 'UML.Packages'
 
     uri = models.CharField(max_length=255, 
-                           )
-    nested_package = models.ForeignKey('self', 
-                                       )
-    nesting_package = models.ForeignKey('self', 
-                                        )
+                           help_text='Provides an identifier for the package that can be used for many purposes. ' +
+                           'A URI is the universally unique identification of the package following the IETF URI ' +
+                           'specification, RFC 2396 http://www.ietf.org/rfc/rfc2396.txt and it must comply with ' +
+                           'those syntax rules.')
+    nested_package = models.ForeignKey('self', help_text='References the packaged elements that are Packages.')
+    nesting_package = models.ForeignKey('self', help_text='References the Package that owns this Package.')
     owned_stereotype = models.ForeignKey('Stereotype', 
-                                         )
-    owned_type = models.ForeignKey('Type', 
-                                   )
+                                         help_text='References the Stereotypes that are owned by the Package.')
+    owned_type = models.ForeignKey('Type', help_text='References the packaged elements that are Types.')
     package_merge = models.ForeignKey('PackageMerge', 
-                                      )
+                                      help_text='References the PackageMerges that are owned by this Package.')
     packaged_element = models.ForeignKey('PackageableElement', 
-                                         )
+                                         help_text='Specifies the packageable elements that are owned by this ' +
+                                         'Package.')
     profile_application = models.ForeignKey('ProfileApplication', 
-                                            )
+                                            help_text='References the ProfileApplications that indicate which ' +
+                                            'profiles have been applied to the Package.')
 
     def all_applicable_stereotypes(self):
         """
@@ -1630,11 +1754,13 @@ class Deployment(models.Model):
 
     dependency = models.OneToOneField('Dependency')
     configuration = models.ForeignKey('DeploymentSpecification', 
-                                      )
+                                      help_text='The specification of properties that parameterize the deployment ' +
+                                      'and execution of one or more Artifacts.')
     deployed_artifact = models.ForeignKey('DeployedArtifact', 
-                                          )
+                                          help_text='The Artifacts that are deployed onto a Node. This ' +
+                                          'association specializes the supplier association.')
     location = models.ForeignKey('DeploymentTarget', 
-                                 )
+                                 help_text='The DeployedTarget which is the target of a Deployment.')
 
 
 class Behavior(models.Model):
@@ -1650,20 +1776,46 @@ class Behavior(models.Model):
 
     class_ = models.OneToOneField('Class')
     context = models.ForeignKey('BehavioredClassifier', 
-                                )
-    is_reentrant = models.BooleanField()
+                                help_text='The BehavioredClassifier that is the context for the execution of the ' +
+                                'Behavior. A Behavior that is directly owned as a nestedClassifier does not have a ' +
+                                'context. Otherwise, to determine the context of a Behavior, find the first ' +
+                                'BehavioredClassifier reached by following the chain of owner relationships from ' +
+                                'the Behavior, if any. If there is such a BehavioredClassifier, then it is the ' +
+                                'context, unless it is itself a Behavior with a non-empty context, in which case ' +
+                                'that is also the context for the original Behavior. For example, following this ' +
+                                'algorithm, the context of an entry Behavior in a StateMachine is the ' +
+                                'BehavioredClassifier that owns the StateMachine. The features of the context ' +
+                                'BehavioredClassifier as well as the Elements visible to the context Classifier ' +
+                                'are visible to the Behavior.')
+    is_reentrant = models.BooleanField(help_text='Tells whether the Behavior can be invoked while it is still ' +
+                                       'executing from a previous invocation.')
     owned_parameter = models.ForeignKey('Parameter', 
-                                        )
-    owned_parameter_set = models.ForeignKey('ParameterSet', 
-                                            )
+                                        help_text='References a list of Parameters to the Behavior which ' +
+                                        'describes the order and type of arguments that can be given when the ' +
+                                        'Behavior is invoked and of the values which will be returned when the ' +
+                                        'Behavior completes its execution.')
+    owned_parameter_set = models.ForeignKey('ParameterSet', help_text='The ParameterSets owned by this Behavior.')
     postcondition = models.ForeignKey('Constraint', 
-                                      )
+                                      help_text='An optional set of Constraints specifying what is fulfilled ' +
+                                      'after the execution of the Behavior is completed, if its precondition was ' +
+                                      'fulfilled before its invocation.')
     precondition = models.ForeignKey('Constraint', 
-                                     )
+                                     help_text='An optional set of Constraints specifying what must be fulfilled ' +
+                                     'before the Behavior is invoked.')
     redefined_behavior = models.ForeignKey('self', 
-                                           )
+                                           help_text='References the Behavior that this Behavior redefines. A ' +
+                                           'subtype of Behavior may redefine any other subtype of Behavior. If the ' +
+                                           'Behavior implements a BehavioralFeature, it replaces the redefined ' +
+                                           'Behavior. If the Behavior is a classifierBehavior, it extends the ' +
+                                           'redefined Behavior.')
     specification = models.ForeignKey('BehavioralFeature', 
-                                      )
+                                      help_text='Designates a BehavioralFeature that the Behavior implements. The ' +
+                                      'BehavioralFeature must be owned by the BehavioredClassifier that owns the ' +
+                                      'Behavior or be inherited by it. The Parameters of the BehavioralFeature and ' +
+                                      'the implementing Behavior must match. A Behavior does not need to have a ' +
+                                      'specification, in which case it either is the classifierBehavior of a ' +
+                                      'BehavioredClassifier or it can only be invoked by another Behavior of the ' +
+                                      'Classifier.')
 
     class Meta:
         abstract = True
@@ -1684,10 +1836,9 @@ class OpaqueBehavior(Behavior):
 
     __package__ = 'UML.CommonBehavior'
 
-    body = models.CharField(max_length=255, 
-                            )
+    body = models.CharField(max_length=255, help_text='Specifies the behavior in one or more languages.')
     language = models.CharField(max_length=255, 
-                                )
+                                help_text='Languages the body strings use in the same order as the body strings.')
 
 
 class FunctionBehavior(models.Model):
@@ -1722,12 +1873,9 @@ class Vertex(NamedElement):
 
     __package__ = 'UML.StateMachines'
 
-    container = models.ForeignKey('Region', 
-                                  )
-    incoming = models.ForeignKey('Transition', 
-                                 )
-    outgoing = models.ForeignKey('Transition', 
-                                 )
+    container = models.ForeignKey('Region', help_text='The Region that contains this Vertex.')
+    incoming = models.ForeignKey('Transition', help_text='Specifies the Transitions entering this Vertex.')
+    outgoing = models.ForeignKey('Transition', help_text='Specifies the Transitions departing from this Vertex.')
 
     class Meta:
         abstract = True
@@ -1770,11 +1918,13 @@ class Pseudostate(Vertex):
     __package__ = 'UML.StateMachines'
 
     kind = models.ForeignKey('PseudostateKind', 
-                             )
-    state = models.ForeignKey('State', 
-                              )
+                             help_text='Determines the precise type of the Pseudostate and can be one of: ' +
+                             'entryPoint, exitPoint, initial, deepHistory, shallowHistory, join, fork, junction, ' +
+                             'terminate or choice.')
+    state = models.ForeignKey('State', help_text='The State that owns this Pseudostate and in which it appears.')
     state_machine = models.ForeignKey('StateMachine', 
-                                      )
+                                      help_text='The StateMachine in which this Pseudostate is defined. This only ' +
+                                      'applies to Pseudostates of the kind entryPoint or exitPoint.')
 
 
 class UnmarshallAction(Action):
@@ -1785,12 +1935,11 @@ class UnmarshallAction(Action):
 
     __package__ = 'UML.Actions'
 
-    object_ = models.ForeignKey('InputPin', 
-                                )
+    object_ = models.ForeignKey('InputPin', help_text='The InputPin that gives the object to be unmarshalled.')
     result = models.ForeignKey('OutputPin', 
-                               )
-    unmarshall_type = models.ForeignKey('Classifier', 
-                                        )
+                               help_text='The OutputPins on which are placed the values of the StructuralFeatures ' +
+                               'of the input object.')
+    unmarshall_type = models.ForeignKey('Classifier', help_text='The type of the object to be unmarshalled.')
 
 
 class ExpansionRegion(models.Model):
@@ -1803,11 +1952,15 @@ class ExpansionRegion(models.Model):
 
     structured_activity_node = models.OneToOneField('StructuredActivityNode')
     input_element = models.ForeignKey('ExpansionNode', 
-                                      )
+                                      help_text='The ExpansionNodes that hold the input collections for the ' +
+                                      'ExpansionRegion.')
     mode = models.ForeignKey('ExpansionKind', 
-                             )
+                             help_text='The mode in which the ExpansionRegion executes its contents. If parallel, ' +
+                             'executions are concurrent. If iterative, executions are sequential. If stream, a ' +
+                             'stream of values flows into a single execution.')
     output_element = models.ForeignKey('ExpansionNode', 
-                                       )
+                                       help_text='The ExpansionNodes that form the output collections of the ' +
+                                       'ExpansionRegion.')
 
 
 class LinkAction(Action):
@@ -1819,9 +1972,9 @@ class LinkAction(Action):
     __package__ = 'UML.Actions'
 
     end_data = models.ForeignKey('LinkEndData', 
-                                 )
-    input_value = models.ForeignKey('InputPin', 
-                                    )
+                                 help_text='The LinkEndData identifying the values on the ends of the links ' +
+                                 'acting on by this LinkAction.')
+    input_value = models.ForeignKey('InputPin', help_text='InputPins used by the LinkEndData of the LinkAction.')
 
     class Meta:
         abstract = True
@@ -1869,7 +2022,7 @@ class CreateLinkObjectAction(models.Model):
 
     create_link_action = models.OneToOneField('CreateLinkAction')
     result = models.ForeignKey('OutputPin', 
-                               )
+                               help_text='The output pin on which the newly created link object is placed.')
 
 
 class CombinedFragment(InteractionFragment):
@@ -1883,11 +2036,12 @@ class CombinedFragment(InteractionFragment):
     __package__ = 'UML.Interactions'
 
     cfragment_gate = models.ForeignKey('Gate', 
-                                       )
+                                       help_text='Specifies the gates that form the interface between this ' +
+                                       'CombinedFragment and its surroundings')
     interaction_operator = models.ForeignKey('InteractionOperatorKind', 
-                                             )
-    operand = models.ForeignKey('InteractionOperand', 
-                                )
+                                             help_text='Specifies the operation which defines the semantics of ' +
+                                             'this combination of InteractionFragments.')
+    operand = models.ForeignKey('InteractionOperand', help_text='The set of operands of the combined fragment.')
 
 
 class Usage(models.Model):
@@ -1910,9 +2064,11 @@ class PackageMerge(DirectedRelationship):
     __package__ = 'UML.Packages'
 
     merged_package = models.ForeignKey('Package', 
-                                       )
+                                       help_text='References the Package that is to be merged with the receiving ' +
+                                       'package of the PackageMerge.')
     receiving_package = models.ForeignKey('Package', 
-                                          )
+                                          help_text='References the Package that is being extended with the ' +
+                                          'contents of the merged package of the PackageMerge.')
 
 
 class Continuation(InteractionFragment):
@@ -1924,7 +2080,8 @@ class Continuation(InteractionFragment):
 
     __package__ = 'UML.Interactions'
 
-    setting = models.BooleanField()
+    setting = models.BooleanField(help_text='True: when the Continuation is at the end of the enclosing ' +
+                                  'InteractionFragment and False when it is in the beginning.')
 
 
 class InvocationAction(Action):
@@ -1936,9 +2093,11 @@ class InvocationAction(Action):
     __package__ = 'UML.Actions'
 
     argument = models.ForeignKey('InputPin', 
-                                 )
+                                 help_text='The InputPins that provide the argument values passed in the ' +
+                                 'invocation request.')
     on_port = models.ForeignKey('Port', 
-                                )
+                                help_text='For CallOperationActions, SendSignalActions, and SendObjectActions, an ' +
+                                'optional Port of the target object through which the invocation request is sent.')
 
     class Meta:
         abstract = True
@@ -1952,9 +2111,12 @@ class CallAction(InvocationAction):
 
     __package__ = 'UML.Actions'
 
-    is_synchronous = models.BooleanField()
+    is_synchronous = models.BooleanField(help_text='If true, the call is synchronous and the caller waits for ' +
+                                         'completion of the invoked Behavior. If false, the call is asynchronous ' +
+                                         'and the caller proceeds immediately and cannot receive return values.')
     result = models.ForeignKey('OutputPin', 
-                               )
+                               help_text='The OutputPins on which the reply values from the invocation are placed ' +
+                               '(if the call is synchronous).')
 
     class Meta:
         abstract = True
@@ -1998,8 +2160,7 @@ class ValueSpecificationAction(Action):
 
     __package__ = 'UML.Actions'
 
-    result = models.ForeignKey('OutputPin', 
-                               )
+    result = models.ForeignKey('OutputPin', help_text='The OutputPin on which the result value is placed.')
     value = models.ForeignKey('ValueSpecification', help_text='The ValueSpecification to be evaluated.')
 
 
@@ -2037,7 +2198,8 @@ class ReadLinkAction(LinkAction):
     __package__ = 'UML.Actions'
 
     result = models.ForeignKey('OutputPin', 
-                               )
+                               help_text='The OutputPin on which the objects retrieved from the "open" end of ' +
+                               'those links whose values on other ends are given by the endData.')
 
     def open_end(self):
         """
@@ -2094,10 +2256,10 @@ class SendSignalAction(InvocationAction):
 
     __package__ = 'UML.Actions'
 
-    signal = models.ForeignKey('Signal', 
-                               )
+    signal = models.ForeignKey('Signal', help_text='The Signal whose instance is transmitted to the target.')
     target = models.ForeignKey('InputPin', 
-                               )
+                               help_text='The InputPin that provides the target object to which the Signal ' +
+                               'instance is sent.')
 
 
 class ReduceAction(Action):
@@ -2108,13 +2270,15 @@ class ReduceAction(Action):
 
     __package__ = 'UML.Actions'
 
-    collection = models.ForeignKey('InputPin', 
-                                   )
-    is_ordered = models.BooleanField()
+    collection = models.ForeignKey('InputPin', help_text='The InputPin that provides the collection to be reduced.')
+    is_ordered = models.BooleanField(help_text='Indicates whether the order of the input collection should ' +
+                                     'determine the order in which the reducer Behavior is applied to its ' +
+                                     'elements.')
     reducer = models.ForeignKey('Behavior', 
-                                )
-    result = models.ForeignKey('OutputPin', 
-                               )
+                                help_text='A Behavior that is repreatedly applied to two elements of the input ' +
+                                'collection to produce a value that is of the same type as elements of the ' +
+                                'collection.')
+    result = models.ForeignKey('OutputPin', help_text='The output pin on which the result value is placed.')
 
 
 class Event(PackageableElement):
@@ -2165,12 +2329,18 @@ class Generalization(DirectedRelationship):
     __package__ = 'UML.Classification'
 
     general = models.ForeignKey('Classifier', 
-                                )
+                                help_text='The general classifier in the Generalization relationship.')
     generalization_set = models.ForeignKey('GeneralizationSet', 
-                                           )
-    is_substitutable = models.BooleanField()
+                                           help_text='Represents a set of instances of Generalization.  A ' +
+                                           'Generalization may appear in many GeneralizationSets.')
+    is_substitutable = models.BooleanField(help_text='Indicates whether the specific Classifier can be used ' +
+                                           'wherever the general Classifier can be used. If true, the execution ' +
+                                           'traces of the specific Classifier shall be a superset of the execution ' +
+                                           'traces of the general Classifier. If false, there is no such ' +
+                                           'constraint on execution traces. If unset, the modeler has not stated ' +
+                                           'whether there is such a constraint or not.')
     specific = models.ForeignKey('Classifier', 
-                                 )
+                                 help_text='The specializing Classifier in the Generalization relationship.')
 
 
 class State(RedefinableElement, Namespace, Vertex):
@@ -2182,29 +2352,55 @@ class State(RedefinableElement, Namespace, Vertex):
     __package__ = 'UML.StateMachines'
 
     connection = models.ForeignKey('ConnectionPointReference', 
-                                   )
+                                   help_text='The entry and exit connection points used in conjunction with this ' +
+                                   '(submachine) State, i.e., as targets and sources, respectively, in the Region ' +
+                                   'with the submachine State. A connection point reference references the ' +
+                                   'corresponding definition of a connection point Pseudostate in the StateMachine ' +
+                                   'referenced by the submachine State.')
     connection_point = models.ForeignKey('Pseudostate', 
-                                         )
+                                         help_text='The entry and exit Pseudostates of a composite State. These ' +
+                                         'can only be entry or exit Pseudostates, and they must have different ' +
+                                         'names. They can only be defined for composite States.')
     deferrable_trigger = models.ForeignKey('Trigger', 
-                                           )
+                                           help_text='A list of Triggers that are candidates to be retained by ' +
+                                           'the StateMachine if they trigger no Transitions out of the State (not ' +
+                                           'consumed). A deferred Trigger is retained until the StateMachine ' +
+                                           'reaches a State configuration where it is no longer deferred.')
     do_activity = models.ForeignKey('Behavior', 
-                                    )
+                                    help_text='An optional Behavior that is executed while being in the State. ' +
+                                    'The execution starts when this State is entered, and ceases either by itself ' +
+                                    'when done, or when the State is exited, whichever comes first.')
     entry = models.ForeignKey('Behavior', 
-                              )
+                              help_text='An optional Behavior that is executed whenever this State is entered ' +
+                              'regardless of the Transition taken to reach the State. If defined, entry Behaviors ' +
+                              'are always executed to completion prior to any internal Behavior or Transitions ' +
+                              'performed within the State.')
     exit = models.ForeignKey('Behavior', 
-                             )
-    is_composite = models.BooleanField()
-    is_orthogonal = models.BooleanField()
-    is_simple = models.BooleanField()
-    is_submachine_state = models.BooleanField()
-    redefined_state = models.ForeignKey('self', 
-                                        )
-    region = models.ForeignKey('Region', 
-                               )
+                             help_text='An optional Behavior that is executed whenever this State is exited ' +
+                             'regardless of which Transition was taken out of the State. If defined, exit ' +
+                             'Behaviors are always executed to completion only after all internal and transition ' +
+                             'Behaviors have completed execution.')
+    is_composite = models.BooleanField(help_text='A state with isComposite=true is said to be a composite State. ' +
+                                       'A composite State is a State that contains at least one Region.')
+    is_orthogonal = models.BooleanField(help_text='A State with isOrthogonal=true is said to be an orthogonal ' +
+                                        'composite State An orthogonal composite State contains two or more ' +
+                                        'Regions.')
+    is_simple = models.BooleanField(help_text='A State with isSimple=true is said to be a simple State A simple ' +
+                                    'State does not have any Regions and it does not refer to any submachine ' +
+                                    'StateMachine.')
+    is_submachine_state = models.BooleanField(help_text='A State with isSubmachineState=true is said to be a ' +
+                                              'submachine State Such a State refers to another ' +
+                                              'StateMachine(submachine).')
+    redefined_state = models.ForeignKey('self', help_text='The State of which this State is a redefinition.')
+    region = models.ForeignKey('Region', help_text='The Regions owned directly by the State.')
     state_invariant = models.ForeignKey('Constraint', 
-                                        )
+                                        help_text='Specifies conditions that are always true when this State is ' +
+                                        'the current State. In ProtocolStateMachines state invariants are ' +
+                                        'additional conditions to the preconditions of the outgoing Transitions, ' +
+                                        'and to the postcondition of the incoming Transitions.')
     submachine = models.ForeignKey('StateMachine', 
-                                   )
+                                   help_text='The StateMachine that is to be inserted in place of the ' +
+                                   '(submachine) State.')
 
     def __init__(self, *args, **kwargs):
         super(State).__init__(*args, **kwargs)
@@ -2236,19 +2432,24 @@ class InformationFlow(DirectedRelationship, PackageableElement):
     __package__ = 'UML.InformationFlows'
 
     conveyed = models.ForeignKey('Classifier', 
-                                 )
+                                 help_text='Specifies the information items that may circulate on this ' +
+                                 'information flow.')
     information_source = models.ForeignKey('NamedElement', 
-                                           )
+                                           help_text='Defines from which source the conveyed InformationItems are ' +
+                                           'initiated.')
     information_target = models.ForeignKey('NamedElement', 
-                                           )
+                                           help_text='Defines to which target the conveyed InformationItems are ' +
+                                           'directed.')
     realization = models.ForeignKey('Relationship', 
-                                    )
+                                    help_text='Determines which Relationship will realize the specified flow.')
     realizing_activity_edge = models.ForeignKey('ActivityEdge', 
-                                                )
+                                                help_text='Determines which ActivityEdges will realize the ' +
+                                                'specified flow.')
     realizing_connector = models.ForeignKey('Connector', 
-                                            )
+                                            help_text='Determines which Connectors will realize the specified ' +
+                                            'flow.')
     realizing_message = models.ForeignKey('Message', 
-                                          )
+                                          help_text='Determines which Messages will realize the specified flow.')
 
 
 class ParameterSet(NamedElement):
@@ -2260,7 +2461,11 @@ class ParameterSet(NamedElement):
     __package__ = 'UML.Classification'
 
     condition = models.ForeignKey('Constraint', 
-                                  )
+                                  help_text='A constraint that should be satisfied for the owner of the ' +
+                                  'Parameters in an input ParameterSet to start execution using the values ' +
+                                  'provided for those Parameters, or the owner of the Parameters in an output ' +
+                                  'ParameterSet to end execution providing the values for those Parameters, if all ' +
+                                  'preconditions and conditions on input ParameterSets were satisfied.')
     parameter = models.ForeignKey('Parameter', help_text='Parameters in the ParameterSet.')
 
 
@@ -2274,16 +2479,17 @@ class MultiplicityElement(Element):
 
     __package__ = 'UML.CommonStructure'
 
-    is_ordered = models.BooleanField()
-    is_unique = models.BooleanField()
-    lower = models.ForeignKey('Integer', 
-                              )
+    is_ordered = models.BooleanField(help_text='For a multivalued multiplicity, this attribute specifies whether ' +
+                                     'the values in an instantiation of this MultiplicityElement are sequentially ' +
+                                     'ordered.')
+    is_unique = models.BooleanField(help_text='For a multivalued multiplicity, this attributes specifies whether ' +
+                                    'the values in an instantiation of this MultiplicityElement are unique.')
+    lower = models.ForeignKey('Integer', help_text='The lower bound of the multiplicity interval.')
     lower_value = models.ForeignKey('ValueSpecification', 
-                                    )
-    upper = models.ForeignKey('UnlimitedNatural', 
-                              )
+                                    help_text='The specification of the lower bound for this multiplicity.')
+    upper = models.ForeignKey('UnlimitedNatural', help_text='The upper bound of the multiplicity interval.')
     upper_value = models.ForeignKey('ValueSpecification', 
-                                    )
+                                    help_text='The specification of the upper bound for this multiplicity.')
 
     class Meta:
         abstract = True
@@ -2305,7 +2511,8 @@ class StructuralFeature(MultiplicityElement, TypedElement, Feature):
 
     __package__ = 'UML.Classification'
 
-    is_read_only = models.BooleanField()
+    is_read_only = models.BooleanField(help_text='If isReadOnly is true, the StructuralFeature may not be written ' +
+                                       'to after initialization.')
 
     class Meta:
         abstract = True
@@ -2322,7 +2529,7 @@ class ConnectableElement(TypedElement, ParameterableElement):
     __package__ = 'UML.StructuredClassifiers'
 
     end = models.ForeignKey('ConnectorEnd', 
-                            )
+                            help_text='A set of ConnectorEnds that attach to this ConnectableElement.')
 
     def __init__(self, *args, **kwargs):
         super(ConnectableElement).__init__(*args, **kwargs)
@@ -2356,33 +2563,41 @@ class Property(ConnectableElement, DeploymentTarget, StructuralFeature):
     __package__ = 'UML.Classification'
 
     aggregation = models.ForeignKey('AggregationKind', 
-                                    )
+                                    help_text='Specifies the kind of aggregation that applies to the Property.')
     association = models.ForeignKey('Association', 
-                                    )
+                                    help_text='The Association of which this Property is a member, if any.')
     association_end = models.ForeignKey('self', 
-                                        )
-    class_ = models.ForeignKey('Class', 
-                               )
-    datatype = models.ForeignKey('DataType', 
-                                 )
+                                        help_text='Designates the optional association end that owns a qualifier ' +
+                                        'attribute.')
+    class_ = models.ForeignKey('Class', help_text='The Class that owns this Property, if any.')
+    datatype = models.ForeignKey('DataType', help_text='The DataType that owns this Property, if any.')
     default_value = models.ForeignKey('ValueSpecification', 
-                                      )
-    interface = models.ForeignKey('Interface', 
-                                  )
-    is_composite = models.BooleanField()
-    is_derived = models.BooleanField()
-    is_derived_union = models.BooleanField()
-    is_id = models.BooleanField()
+                                      help_text='A ValueSpecification that is evaluated to give a default value ' +
+                                      'for the Property when an instance of the owning Classifier is ' +
+                                      'instantiated.')
+    interface = models.ForeignKey('Interface', help_text='The Interface that owns this Property, if any.')
+    is_composite = models.BooleanField(help_text='If isComposite is true, the object containing the attribute is ' +
+                                       'a container for the object or value contained in the attribute. This is a ' +
+                                       'derived value, indicating whether the aggregation of the Property is ' +
+                                       'composite or not.')
+    is_derived = models.BooleanField(help_text='Specifies whether the Property is derived, i.e., whether its ' +
+                                     'value or values can be computed from other information.')
+    is_derived_union = models.BooleanField(help_text='Specifies whether the property is derived as the union of ' +
+                                           'all of the Properties that are constrained to subset it.')
+    is_id = models.BooleanField(help_text='True indicates this property can be used to uniquely identify an ' +
+                                'instance of the containing Class.')
     opposite = models.ForeignKey('self', 
-                                 )
+                                 help_text='In the case where the Property is one end of a binary association ' +
+                                 'this gives the other end.')
     owning_association = models.ForeignKey('Association', 
-                                           )
-    qualifier = models.ForeignKey('self', 
-                                  )
+                                           help_text='The owning association of this property, if any.')
+    qualifier = models.ForeignKey('self', help_text='An optional list of ordered qualifier attributes for the end.')
     redefined_property = models.ForeignKey('self', 
-                                           )
+                                           help_text='The properties that are redefined by this property, if ' +
+                                           'any.')
     subsetted_property = models.ForeignKey('self', 
-                                           )
+                                           help_text='The properties of which this Property is constrained to be ' +
+                                           'a subset, if any.')
 
     def opposite_operation(self):
         """
@@ -2445,7 +2660,12 @@ class DurationConstraint(models.Model):
     __package__ = 'UML.Values'
 
     interval_constraint = models.OneToOneField('IntervalConstraint')
-    first_event = models.BooleanField()
+    first_event = models.BooleanField(help_text='The value of firstEvent[i] is related to constrainedElement[i] ' +
+                                      '(where i is 1 or 2). If firstEvent[i] is true, then the corresponding ' +
+                                      'observation event is the first time instant the execution enters ' +
+                                      'constrainedElement[i]. If firstEvent[i] is false, then the corresponding ' +
+                                      'observation event is the last time instant the execution is within ' +
+                                      'constrainedElement[i].')
 
     def __init__(self, *args, **kwargs):
         super(DurationConstraint).__init__(*args, **kwargs)
@@ -2490,19 +2710,25 @@ class Parameter(MultiplicityElement, ConnectableElement):
     __package__ = 'UML.Classification'
 
     default = models.CharField(max_length=255, 
-                               )
+                               help_text='A String that represents a value to be used when no argument is ' +
+                               'supplied for the Parameter.')
     default_value = models.ForeignKey('ValueSpecification', 
-                                      )
+                                      help_text='Specifies a ValueSpecification that represents a value to be ' +
+                                      'used when no argument is supplied for the Parameter.')
     direction = models.ForeignKey('ParameterDirectionKind', 
-                                  )
+                                  help_text='Indicates whether a parameter is being sent into or out of a ' +
+                                  'behavioral element.')
     effect = models.ForeignKey('ParameterEffectKind', 
-                               )
-    is_exception = models.BooleanField()
-    is_stream = models.BooleanField()
-    operation = models.ForeignKey('Operation', 
-                                  )
+                               help_text='Specifies the effect that executions of the owner of the Parameter have ' +
+                               'on objects passed in or out of the parameter.')
+    is_exception = models.BooleanField(help_text='Tells whether an output parameter may emit a value to the ' +
+                                       'exclusion of the other outputs.')
+    is_stream = models.BooleanField(help_text='Tells whether an input parameter may accept values while its ' +
+                                    'behavior is executing, or whether an output parameter may post values while ' +
+                                    'the behavior is executing.')
+    operation = models.ForeignKey('Operation', help_text='The Operation owning this parameter.')
     parameter_set = models.ForeignKey('ParameterSet', 
-                                      )
+                                      help_text='The ParameterSets containing the parameter. See ParameterSet.')
 
     def default_operation(self):
         """
@@ -2522,8 +2748,7 @@ class SendObjectAction(InvocationAction):
 
     __package__ = 'UML.Actions'
 
-    target = models.ForeignKey('InputPin', 
-                               )
+    target = models.ForeignKey('InputPin', help_text='The target object to which the object is sent.')
 
     def __init__(self, *args, **kwargs):
         super(SendObjectAction).__init__(*args, **kwargs)
@@ -2539,7 +2764,8 @@ class Include(DirectedRelationship, NamedElement):
 
     addition = models.ForeignKey('UseCase', help_text='The UseCase that is to be included.')
     including_case = models.ForeignKey('UseCase', 
-                                       )
+                                       help_text='The UseCase which includes the addition and owns the Include ' +
+                                       'relationship.')
 
 
 class Interval(ValueSpecification):
@@ -2550,9 +2776,11 @@ class Interval(ValueSpecification):
     __package__ = 'UML.Values'
 
     max_ = models.ForeignKey('ValueSpecification', 
-                             )
+                             help_text='Refers to the ValueSpecification denoting the maximum value of the ' +
+                             'range.')
     min_ = models.ForeignKey('ValueSpecification', 
-                             )
+                             help_text='Refers to the ValueSpecification denoting the minimum value of the ' +
+                             'range.')
 
 
 class InformationItem(Classifier):
@@ -2573,7 +2801,9 @@ class InformationItem(Classifier):
     __package__ = 'UML.InformationFlows'
 
     represented = models.ForeignKey('Classifier', 
-                                    )
+                                    help_text='Determines the classifiers that will specify the structure and ' +
+                                    'nature of the information. An information item represents all its represented ' +
+                                    'classifiers.')
 
 
 class MessageSort(models.Model):
@@ -2615,11 +2845,10 @@ class ConnectionPointReference(Vertex):
     __package__ = 'UML.StateMachines'
 
     entry = models.ForeignKey('Pseudostate', 
-                              )
+                              help_text='The entryPoint Pseudostates corresponding to this connection point.')
     exit = models.ForeignKey('Pseudostate', 
-                             )
-    state = models.ForeignKey('State', 
-                              )
+                             help_text='The exitPoints kind Pseudostates corresponding to this connection point.')
+    state = models.ForeignKey('State', help_text='The State in which the ConnectionPointReference is defined.')
 
 
 class GeneralizationSet(PackageableElement):
@@ -2631,11 +2860,24 @@ class GeneralizationSet(PackageableElement):
     __package__ = 'UML.Classification'
 
     generalization = models.ForeignKey('Generalization', 
-                                       )
-    is_covering = models.BooleanField()
-    is_disjoint = models.BooleanField()
+                                       help_text='Designates the instances of Generalization that are members of ' +
+                                       'this GeneralizationSet.')
+    is_covering = models.BooleanField(help_text='Indicates (via the associated Generalizations) whether or not ' +
+                                      'the set of specific Classifiers are covering for a particular general ' +
+                                      'classifier. When isCovering is true, every instance of a particular general ' +
+                                      'Classifier is also an instance of at least one of its specific Classifiers ' +
+                                      'for the GeneralizationSet. When isCovering is false, there are one or more ' +
+                                      'instances of the particular general Classifier that are not instances of at ' +
+                                      'least one of its specific Classifiers defined for the GeneralizationSet.')
+    is_disjoint = models.BooleanField(help_text='Indicates whether or not the set of specific Classifiers in a ' +
+                                      'Generalization relationship have instance in common. If isDisjoint is true, ' +
+                                      'the specific Classifiers for a particular GeneralizationSet have no members ' +
+                                      'in common; that is, their intersection is empty. If isDisjoint is false, ' +
+                                      'the specific Classifiers in a particular GeneralizationSet have one or more ' +
+                                      'members in common; that is, their intersection is not empty.')
     powertype = models.ForeignKey('Classifier', 
-                                  )
+                                  help_text='Designates the Classifier that is defined as the power type for the ' +
+                                  'associated GeneralizationSet, if there is one.')
 
 
 class ForkNode(ControlNode):
@@ -2669,7 +2911,8 @@ class WriteVariableAction(VariableAction):
     __package__ = 'UML.Actions'
 
     value = models.ForeignKey('InputPin', 
-                              )
+                              help_text='The InputPin that gives the value to be added or removed from the ' +
+                              'Variable.')
 
     class Meta:
         abstract = True
@@ -2683,9 +2926,12 @@ class RemoveVariableValueAction(WriteVariableAction):
 
     __package__ = 'UML.Actions'
 
-    is_remove_duplicates = models.BooleanField()
+    is_remove_duplicates = models.BooleanField(help_text='Specifies whether to remove duplicates of the value in ' +
+                                               'nonunique Variables.')
     remove_at = models.ForeignKey('InputPin', 
-                                  )
+                                  help_text='An InputPin that provides the position of an existing value to ' +
+                                  'remove in ordered, nonunique Variables. The type of the removeAt InputPin is ' +
+                                  'UnlimitedNatural, but the value cannot be zero or unlimited.')
 
 
 class Expression(ValueSpecification):
@@ -2699,9 +2945,9 @@ class Expression(ValueSpecification):
     __package__ = 'UML.Values'
 
     operand = models.ForeignKey('ValueSpecification', 
-                                )
+                                help_text='Specifies a sequence of operand ValueSpecifications.')
     symbol = models.CharField(max_length=255, 
-                              )
+                              help_text='The symbol associated with this node in the expression tree.')
 
 
 class StringExpression(TemplateableElement):
@@ -2715,9 +2961,10 @@ class StringExpression(TemplateableElement):
 
     expression = models.OneToOneField('Expression')
     owning_expression = models.ForeignKey('self', 
-                                          )
+                                          help_text='The StringExpression of which this StringExpression is a ' +
+                                          'subExpression.')
     sub_expression = models.ForeignKey('self', 
-                                       )
+                                       help_text='The StringExpressions that constitute this StringExpression.')
 
     def string_value(self):
         """
@@ -2745,17 +2992,25 @@ class Clause(Element):
     __package__ = 'UML.Actions'
 
     body = models.ForeignKey('ExecutableNode', 
-                             )
+                             help_text='The set of ExecutableNodes that are executed if the test evaluates to ' +
+                             'true and the Clause is chosen over other Clauses within the ConditionalNode that ' +
+                             'also have tests that evaluate to true.')
     body_output = models.ForeignKey('OutputPin', 
-                                    )
+                                    help_text='The OutputPins on Actions within the body section whose values are ' +
+                                    'moved to the result OutputPins of the containing ConditionalNode after ' +
+                                    'execution of the body.')
     decider = models.ForeignKey('OutputPin', 
-                                )
+                                help_text='An OutputPin on an Action in the test section whose Boolean value ' +
+                                'determines the result of the test.')
     predecessor_clause = models.ForeignKey('self', 
-                                           )
+                                           help_text='A set of Clauses whose tests must all evaluate to false ' +
+                                           'before this Clause can evaluate its test.')
     successor_clause = models.ForeignKey('self', 
-                                         )
+                                         help_text='A set of Clauses that may not evaluate their tests unless the ' +
+                                         'test for this Clause evaluates to false.')
     test = models.ForeignKey('ExecutableNode', 
-                             )
+                             help_text='The set of ExecutableNodes that are executed in order to provide a test ' +
+                             'result for the Clause.')
 
 
 class WriteStructuralFeatureAction(StructuralFeatureAction):
@@ -2767,9 +3022,11 @@ class WriteStructuralFeatureAction(StructuralFeatureAction):
     __package__ = 'UML.Actions'
 
     result = models.ForeignKey('OutputPin', 
-                               )
+                               help_text='The OutputPin on which is put the input object as modified by the ' +
+                               'WriteStructuralFeatureAction.')
     value = models.ForeignKey('InputPin', 
-                              )
+                              help_text='The InputPin that provides the value to be added or removed from the ' +
+                              'StructuralFeature.')
 
     class Meta:
         abstract = True
@@ -2784,8 +3041,12 @@ class AddStructuralFeatureValueAction(WriteStructuralFeatureAction):
     __package__ = 'UML.Actions'
 
     insert_at = models.ForeignKey('InputPin', 
-                                  )
-    is_replace_all = models.BooleanField()
+                                  help_text='The InputPin that gives the position at which to insert the value in ' +
+                                  'an ordered StructuralFeature. The type of the insertAt InputPin is ' +
+                                  'UnlimitedNatural, but the value cannot be zero. It is omitted for unordered ' +
+                                  'StructuralFeatures.')
+    is_replace_all = models.BooleanField(help_text='Specifies whether existing values of the StructuralFeature ' +
+                                         'should be removed before adding the new value.')
 
 
 class Port(models.Model):
@@ -2804,17 +3065,48 @@ class Port(models.Model):
     __package__ = 'UML.StructuredClassifiers'
 
     property_ = models.OneToOneField('Property')
-    is_behavior = models.BooleanField()
-    is_conjugated = models.BooleanField()
-    is_service = models.BooleanField()
+    is_behavior = models.BooleanField(help_text='Specifies whether requests arriving at this Port are sent to the ' +
+                                      'classifier behavior of this EncapsulatedClassifier. Such a Port is referred ' +
+                                      'to as a behavior Port. Any invocation of a BehavioralFeature targeted at a ' +
+                                      'behavior Port will be handled by the instance of the owning ' +
+                                      'EncapsulatedClassifier itself, rather than by any instances that it may ' +
+                                      'contain.')
+    is_conjugated = models.BooleanField(help_text='Specifies the way that the provided and required Interfaces ' +
+                                        'are derived from the Port"s Type.')
+    is_service = models.BooleanField(help_text='If true, indicates that this Port is used to provide the ' +
+                                     'published functionality of an EncapsulatedClassifier.  If false, this Port ' +
+                                     'is used to implement the EncapsulatedClassifier but is not part of the ' +
+                                     'essential externally-visible functionality of the EncapsulatedClassifier and ' +
+                                     'can, therefore, be altered or deleted along with the internal implementation ' +
+                                     'of the EncapsulatedClassifier and other properties that are considered part ' +
+                                     'of its implementation.')
     protocol = models.ForeignKey('ProtocolStateMachine', 
-                                 )
+                                 help_text='An optional ProtocolStateMachine which describes valid interactions ' +
+                                 'at this interaction point.')
     provided = models.ForeignKey('Interface', 
-                                 )
+                                 help_text='The Interfaces specifying the set of Operations and Receptions that ' +
+                                 'the EncapsulatedCclassifier offers to its environment via this Port, and which ' +
+                                 'it will handle either directly or by forwarding it to a part of its internal ' +
+                                 'structure. This association is derived according to the value of isConjugated. ' +
+                                 'If isConjugated is false, provided is derived as the union of the sets of ' +
+                                 'Interfaces realized by the type of the port and its supertypes, or directly from ' +
+                                 'the type of the Port if the Port is typed by an Interface. If isConjugated is ' +
+                                 'true, it is derived as the union of the sets of Interfaces used by the type of ' +
+                                 'the Port and its supertypes.')
     redefined_port = models.ForeignKey('self', 
-                                       )
+                                       help_text='A Port may be redefined when its containing ' +
+                                       'EncapsulatedClassifier is specialized. The redefining Port may have ' +
+                                       'additional Interfaces to those that are associated with the redefined Port ' +
+                                       'or it may replace an Interface by one of its subtypes.')
     required = models.ForeignKey('Interface', 
-                                 )
+                                 help_text='The Interfaces specifying the set of Operations and Receptions that ' +
+                                 'the EncapsulatedCassifier expects its environment to handle via this port. This ' +
+                                 'association is derived according to the value of isConjugated. If isConjugated ' +
+                                 'is false, required is derived as the union of the sets of Interfaces used by the ' +
+                                 'type of the Port and its supertypes. If isConjugated is true, it is derived as ' +
+                                 'the union of the sets of Interfaces realized by the type of the Port and its ' +
+                                 'supertypes, or directly from the type of the Port if the Port is typed by an ' +
+                                 'Interface.')
 
     def provided_operation(self):
         """
@@ -2835,14 +3127,21 @@ class ObjectNode(TypedElement, ActivityNode):
     __package__ = 'UML.Activities'
 
     in_state = models.ForeignKey('State', 
-                                 )
-    is_control_type = models.BooleanField()
+                                 help_text='The States required to be associated with the values held by tokens ' +
+                                 'on this ObjectNode.')
+    is_control_type = models.BooleanField(help_text='Indicates whether the type of the ObjectNode is to be ' +
+                                          'treated as representing control values that may traverse ControlFlows.')
     ordering = models.ForeignKey('ObjectNodeOrderingKind', 
-                                 )
+                                 help_text='Indicates how the tokens held by the ObjectNode are ordered for ' +
+                                 'selection to traverse ActivityEdges outgoing from the ObjectNode.')
     selection = models.ForeignKey('Behavior', 
-                                  )
+                                  help_text='A Behavior used to select tokens to be offered on outgoing ' +
+                                  'ActivityEdges.')
     upper_bound = models.ForeignKey('ValueSpecification', 
-                                    )
+                                    help_text='The maximum number of tokens that may be held by this ObjectNode. ' +
+                                    'Tokens cannot flow into the ObjectNode if the upperBound is reached. If no ' +
+                                    'upperBound is specified, then there is no limit on how many tokens the ' +
+                                    'ObjectNode can hold.')
 
     class Meta:
         abstract = True
@@ -2856,7 +3155,8 @@ class Pin(ObjectNode, MultiplicityElement):
 
     __package__ = 'UML.Actions'
 
-    is_control = models.BooleanField()
+    is_control = models.BooleanField(help_text='Indicates whether the Pin provides data to the Action or just ' +
+                                     'controls how the Action executes.')
 
     class Meta:
         abstract = True
@@ -2917,28 +3217,37 @@ class Operation(TemplateableElement, ParameterableElement, BehavioralFeature):
     __package__ = 'UML.Classification'
 
     body_condition = models.ForeignKey('Constraint', 
-                                       )
-    class_ = models.ForeignKey('Class', 
-                               )
-    datatype = models.ForeignKey('DataType', 
-                                 )
-    interface = models.ForeignKey('Interface', 
-                                  )
-    is_ordered = models.BooleanField()
-    is_query = models.BooleanField()
-    is_unique = models.BooleanField()
+                                       help_text='An optional Constraint on the result values of an invocation of ' +
+                                       'this Operation.')
+    class_ = models.ForeignKey('Class', help_text='The Class that owns this operation, if any.')
+    datatype = models.ForeignKey('DataType', help_text='The DataType that owns this Operation, if any.')
+    interface = models.ForeignKey('Interface', help_text='The Interface that owns this Operation, if any.')
+    is_ordered = models.BooleanField(help_text='Specifies whether the return parameter is ordered or not, if ' +
+                                     'present.  This information is derived from the return result for this ' +
+                                     'Operation.')
+    is_query = models.BooleanField(help_text='Specifies whether an execution of the BehavioralFeature leaves the ' +
+                                   'state of the system unchanged (isQuery=true) or whether side effects may occur ' +
+                                   '(isQuery=false).')
+    is_unique = models.BooleanField(help_text='Specifies whether the return parameter is unique or not, if ' +
+                                    'present. This information is derived from the return result for this ' +
+                                    'Operation.')
     lower = models.ForeignKey('Integer', 
-                              )
+                              help_text='Specifies the lower multiplicity of the return parameter, if present. ' +
+                              'This information is derived from the return result for this Operation.')
     postcondition = models.ForeignKey('Constraint', 
-                                      )
+                                      help_text='An optional set of Constraints specifying the state of the ' +
+                                      'system when the Operation is completed.')
     precondition = models.ForeignKey('Constraint', 
-                                     )
+                                     help_text='An optional set of Constraints on the state of the system when ' +
+                                     'the Operation is invoked.')
     redefined_operation = models.ForeignKey('self', 
-                                            )
+                                            help_text='The Operations that are redefined by this Operation.')
     type_ = models.ForeignKey('Type', 
-                              )
+                              help_text='The return type of the operation, if present. This information is ' +
+                              'derived from the return result for this Operation.')
     upper = models.ForeignKey('UnlimitedNatural', 
-                              )
+                              help_text='The upper multiplicity of the return parameter, if present. This ' +
+                              'information is derived from the return result for this Operation.')
 
     def __init__(self, *args, **kwargs):
         super(Operation).__init__(*args, **kwargs)
@@ -2965,10 +3274,8 @@ class InteractionConstraint(models.Model):
     __package__ = 'UML.Interactions'
 
     constraint = models.OneToOneField('Constraint')
-    maxint = models.ForeignKey('ValueSpecification', 
-                               )
-    minint = models.ForeignKey('ValueSpecification', 
-                               )
+    maxint = models.ForeignKey('ValueSpecification', help_text='The maximum number of iterations of a loop')
+    minint = models.ForeignKey('ValueSpecification', help_text='The minimum number of iterations of a loop')
 
 
 class BehaviorExecutionSpecification(ExecutionSpecification):
@@ -2979,8 +3286,7 @@ class BehaviorExecutionSpecification(ExecutionSpecification):
 
     __package__ = 'UML.Interactions'
 
-    behavior = models.ForeignKey('Behavior', 
-                                 )
+    behavior = models.ForeignKey('Behavior', help_text='Behavior whose execution is occurring.')
 
 
 class TemplateParameter(Element):
@@ -2992,15 +3298,20 @@ class TemplateParameter(Element):
     __package__ = 'UML.CommonStructure'
 
     default = models.ForeignKey('ParameterableElement', 
-                                )
+                                help_text='The ParameterableElement that is the default for this formal ' +
+                                'TemplateParameter.')
     owned_default = models.ForeignKey('ParameterableElement', 
-                                      )
+                                      help_text='The ParameterableElement that is owned by this TemplateParameter ' +
+                                      'for the purpose of providing a default.')
     owned_parametered_element = models.ForeignKey('ParameterableElement', 
-                                                  )
+                                                  help_text='The ParameterableElement that is owned by this ' +
+                                                  'TemplateParameter for the purpose of exposing it as the ' +
+                                                  'parameteredElement.')
     parametered_element = models.ForeignKey('ParameterableElement', 
-                                            )
+                                            help_text='The ParameterableElement exposed by this ' +
+                                            'TemplateParameter.')
     signature = models.ForeignKey('TemplateSignature', 
-                                  )
+                                  help_text='The TemplateSignature that owns this TemplateParameter.')
 
 
 class ActivityParameterNode(ObjectNode):
@@ -3012,7 +3323,8 @@ class ActivityParameterNode(ObjectNode):
     __package__ = 'UML.Activities'
 
     parameter = models.ForeignKey('Parameter', 
-                                  )
+                                  help_text='The Parameter for which the ActivityParameterNode will be accepting ' +
+                                  'or providing values.')
 
 
 class CollaborationUse(NamedElement):
@@ -3024,9 +3336,15 @@ class CollaborationUse(NamedElement):
     __package__ = 'UML.StructuredClassifiers'
 
     role_binding = models.ForeignKey('Dependency', 
-                                     )
+                                     help_text='A mapping between features of the Collaboration and features of ' +
+                                     'the owning Classifier. This mapping indicates which ConnectableElement of ' +
+                                     'the Classifier plays which role(s) in the Collaboration. A ' +
+                                     'ConnectableElement may be bound to multiple roles in the same ' +
+                                     'CollaborationUse (that is, it may play multiple roles).')
     type_ = models.ForeignKey('Collaboration', 
-                              )
+                              help_text='The Collaboration which is used in this CollaborationUse. The ' +
+                              'Collaboration defines the cooperation between its roles which are mapped to ' +
+                              'ConnectableElements relating to the Classifier owning the CollaborationUse.')
 
 
 class InterruptibleActivityRegion(ActivityGroup):
@@ -3038,9 +3356,11 @@ class InterruptibleActivityRegion(ActivityGroup):
     __package__ = 'UML.Activities'
 
     interrupting_edge = models.ForeignKey('ActivityEdge', 
-                                          )
+                                          help_text='The ActivityEdges leaving the InterruptibleActivityRegion on ' +
+                                          'which a traversing token will result in the termination of other tokens ' +
+                                          'flowing in the InterruptibleActivityRegion.')
     node = models.ForeignKey('ActivityNode', 
-                             )
+                             help_text='ActivityNodes immediately contained in the InterruptibleActivityRegion.')
 
 
 class ExpansionKind(models.Model):
@@ -3079,13 +3399,20 @@ class OpaqueExpression(ValueSpecification):
     __package__ = 'UML.Values'
 
     behavior = models.ForeignKey('Behavior', 
-                                 )
+                                 help_text='Specifies the behavior of the OpaqueExpression as a UML Behavior.')
     body = models.CharField(max_length=255, 
-                            )
+                            help_text='A textual definition of the behavior of the OpaqueExpression, possibly in ' +
+                            'multiple languages.')
     language = models.CharField(max_length=255, 
-                                )
+                                help_text='Specifies the languages used to express the textual bodies of the ' +
+                                'OpaqueExpression.  Languages are matched to body Strings by order. The ' +
+                                'interpretation of the body depends on the languages. If the languages are ' +
+                                'unspecified, they may be implicit from the expression body or the context.')
     result = models.ForeignKey('Parameter', 
-                               )
+                               help_text='If an OpaqueExpression is specified using a UML Behavior, then this ' +
+                               'refers to the single required return Parameter of that Behavior. When the Behavior ' +
+                               'completes execution, the values on this Parameter give the result of evaluating ' +
+                               'the OpaqueExpression.')
 
     def is_positive(self):
         """
@@ -3103,7 +3430,7 @@ class CallEvent(MessageEvent):
     __package__ = 'UML.CommonBehavior'
 
     operation = models.ForeignKey('Operation', 
-                                  )
+                                  help_text='Designates the Operation whose invocation raised the CalEvent.')
 
 
 class ConnectableElementTemplateParameter(models.Model):
@@ -3129,8 +3456,7 @@ class ExtensionPoint(RedefinableElement):
 
     __package__ = 'UML.UseCases'
 
-    use_case = models.ForeignKey('UseCase', 
-                                 )
+    use_case = models.ForeignKey('UseCase', help_text='The UseCase that owns this ExtensionPoint.')
 
 
 class StartClassifierBehaviorAction(Action):
@@ -3142,7 +3468,8 @@ class StartClassifierBehaviorAction(Action):
     __package__ = 'UML.Actions'
 
     object_ = models.ForeignKey('InputPin', 
-                                )
+                                help_text='The InputPin that holds the object whose classifierBehavior is to be ' +
+                                'started.')
 
 
 class ReadExtentAction(Action):
@@ -3153,10 +3480,8 @@ class ReadExtentAction(Action):
 
     __package__ = 'UML.Actions'
 
-    classifier = models.ForeignKey('Classifier', 
-                                   )
-    result = models.ForeignKey('OutputPin', 
-                               )
+    classifier = models.ForeignKey('Classifier', help_text='The Classifier whose instances are to be retrieved.')
+    result = models.ForeignKey('OutputPin', help_text='The OutputPin on which the Classifier instances are placed.')
 
 
 class UseCase(BehavioredClassifier):
@@ -3168,14 +3493,12 @@ class UseCase(BehavioredClassifier):
 
     __package__ = 'UML.UseCases'
 
-    extend = models.ForeignKey('Extend', 
-                               )
-    extension_point = models.ForeignKey('ExtensionPoint', 
-                                        )
-    include = models.ForeignKey('Include', 
-                                )
+    extend = models.ForeignKey('Extend', help_text='The Extend relationships owned by this UseCase.')
+    extension_point = models.ForeignKey('ExtensionPoint', help_text='The ExtensionPoints owned by this UseCase.')
+    include = models.ForeignKey('Include', help_text='The Include relationships owned by this UseCase.')
     subject = models.ForeignKey('Classifier', 
-                                )
+                                help_text='The subjects to which this UseCase applies. Each subject or its parts ' +
+                                'realize all the UseCases that apply to it.')
 
     def all_included_use_cases(self):
         """
@@ -3196,13 +3519,21 @@ class Extend(NamedElement, DirectedRelationship):
     __package__ = 'UML.UseCases'
 
     condition = models.ForeignKey('Constraint', 
-                                  )
-    extended_case = models.ForeignKey('UseCase', 
-                                      )
+                                  help_text='References the condition that must hold when the first ' +
+                                  'ExtensionPoint is reached for the extension to take place. If no constraint is ' +
+                                  'associated with the Extend relationship, the extension is unconditional.')
+    extended_case = models.ForeignKey('UseCase', help_text='The UseCase that is being extended.')
     extension = models.ForeignKey('UseCase', 
-                                  )
+                                  help_text='The UseCase that represents the extension and owns the Extend ' +
+                                  'relationship.')
     extension_location = models.ForeignKey('ExtensionPoint', 
-                                           )
+                                           help_text='An ordered list of ExtensionPoints belonging to the ' +
+                                           'extended UseCase, specifying where the respective behavioral fragments ' +
+                                           'of the extending UseCase are to be inserted. The first fragment in the ' +
+                                           'extending UseCase is associated with the first extension point in the ' +
+                                           'list, the second fragment with the second point, and so on. Note that, ' +
+                                           'in most practical cases, the extending UseCase has just a single ' +
+                                           'behavior fragment, so that the list of ExtensionPoints is trivial.')
 
 
 class ClassifierTemplateParameter(models.Model):
@@ -3214,9 +3545,16 @@ class ClassifierTemplateParameter(models.Model):
     __package__ = 'UML.Classification'
 
     template_parameter = models.OneToOneField('TemplateParameter')
-    allow_substitutable = models.BooleanField()
+    allow_substitutable = models.BooleanField(help_text='Constrains the required relationship between an actual ' +
+                                              'parameter and the parameteredElement for this formal parameter.')
     constraining_classifier = models.ForeignKey('Classifier', 
-                                                )
+                                                help_text='The classifiers that constrain the argument that can ' +
+                                                'be used for the parameter. If the allowSubstitutable attribute is ' +
+                                                'true, then any Classifier that is compatible with this ' +
+                                                'constraining Classifier can be substituted; otherwise, it must be ' +
+                                                'either this Classifier or one of its specializations. If this ' +
+                                                'property is empty, there are no constraints on the Classifier ' +
+                                                'that can be used as an argument.')
 
     def __init__(self, *args, **kwargs):
         super(ClassifierTemplateParameter).__init__(*args, **kwargs)
@@ -3231,12 +3569,15 @@ class ReadIsClassifiedObjectAction(Action):
     __package__ = 'UML.Actions'
 
     classifier = models.ForeignKey('Classifier', 
-                                   )
-    is_direct = models.BooleanField()
+                                   help_text='The Classifier against which the classification of the input object ' +
+                                   'is tested.')
+    is_direct = models.BooleanField(help_text='Indicates whether the input object must be directly classified by ' +
+                                    'the given Classifier or whether it may also be an instance of a ' +
+                                    'specialization of the given Classifier.')
     object_ = models.ForeignKey('InputPin', 
-                                )
-    result = models.ForeignKey('OutputPin', 
-                               )
+                                help_text='The InputPin that holds the object whose classification is to be ' +
+                                'tested.')
+    result = models.ForeignKey('OutputPin', help_text='The OutputPin that holds the Boolean result of the test.')
 
 
 class OperationTemplateParameter(models.Model):
@@ -3264,14 +3605,17 @@ class Association(Relationship, Classifier):
     __package__ = 'UML.StructuredClassifiers'
 
     end_type = models.ForeignKey('Type', 
-                                 )
-    is_derived = models.BooleanField()
+                                 help_text='The Classifiers that are used as types of the ends of the ' +
+                                 'Association.')
+    is_derived = models.BooleanField(help_text='Specifies whether the Association is derived from other model ' +
+                                     'elements such as other Associations.')
     member_end = models.ForeignKey('Property', 
-                                   )
+                                   help_text='Each end represents participation of instances of the Classifier ' +
+                                   'connected to the end in links of the Association.')
     navigable_owned_end = models.ForeignKey('Property', 
-                                            )
-    owned_end = models.ForeignKey('Property', 
-                                  )
+                                            help_text='The navigable ends that are owned by the Association ' +
+                                            'itself.')
+    owned_end = models.ForeignKey('Property', help_text='The ends that are owned by the Association itself.')
 
     def end_type_operation(self):
         """
@@ -3291,9 +3635,15 @@ class Extension(models.Model):
     __package__ = 'UML.Packages'
 
     association = models.OneToOneField('Association')
-    is_required = models.BooleanField()
+    is_required = models.BooleanField(help_text='Indicates whether an instance of the extending stereotype must ' +
+                                      'be created when an instance of the extended class is created. The attribute ' +
+                                      'value is derived from the value of the lower property of the ExtensionEnd ' +
+                                      'referenced by Extension::ownedEnd; a lower value of 1 means that isRequired ' +
+                                      'is true, but otherwise it is false. Since the default value of ' +
+                                      'ExtensionEnd::lower is 0, the default value of isRequired is false.')
     metaclass = models.ForeignKey('Class', 
-                                  )
+                                  help_text='References the Class that is extended through an Extension. The ' +
+                                  'property is derived from the type of the memberEnd that is not the ownedEnd.')
 
     def __init__(self, *args, **kwargs):
         super(Extension).__init__(*args, **kwargs)
@@ -3394,7 +3744,8 @@ class Manifestation(models.Model):
 
     abstraction = models.OneToOneField('Abstraction')
     utilized_element = models.ForeignKey('PackageableElement', 
-                                         )
+                                         help_text='The model element that is utilized in the manifestation in an ' +
+                                         'Artifact.')
 
 
 class ElementImport(DirectedRelationship):
@@ -3407,13 +3758,21 @@ class ElementImport(DirectedRelationship):
     __package__ = 'UML.CommonStructure'
 
     alias = models.CharField(max_length=255, 
-                             )
+                             help_text='Specifies the name that should be added to the importing Namespace in ' +
+                             'lieu of the name of the imported PackagableElement. The alias must not clash with ' +
+                             'any other member in the importing Namespace. By default, no alias is used.')
     imported_element = models.ForeignKey('PackageableElement', 
-                                         )
+                                         help_text='Specifies the PackageableElement whose name is to be added to ' +
+                                         'a Namespace.')
     importing_namespace = models.ForeignKey('Namespace', 
-                                            )
+                                            help_text='Specifies the Namespace that imports a PackageableElement ' +
+                                            'from another Namespace.')
     visibility = models.ForeignKey('VisibilityKind', 
-                                   )
+                                   help_text='Specifies the visibility of the imported PackageableElement within ' +
+                                   'the importingNamespace, i.e., whether the  importedElement will in turn be ' +
+                                   'visible to other Namespaces. If the ElementImport is public, the ' +
+                                   'importedElement will be visible outside the importingNamespace while, if the ' +
+                                   'ElementImport is private, it will not.')
 
     def get_name(self):
         """
@@ -3450,7 +3809,8 @@ class ValuePin(models.Model):
 
     input_pin = models.OneToOneField('InputPin')
     value = models.ForeignKey('ValueSpecification', 
-                              )
+                              help_text='The ValueSpecification that is evaluated to obtain the value that the ' +
+                              'ValuePin will provide.')
 
 
 class CallBehaviorAction(CallAction):
@@ -3485,8 +3845,12 @@ class AddVariableValueAction(WriteVariableAction):
     __package__ = 'UML.Actions'
 
     insert_at = models.ForeignKey('InputPin', 
-                                  )
-    is_replace_all = models.BooleanField()
+                                  help_text='The InputPin that gives the position at which to insert a new value ' +
+                                  'or move an existing value in ordered Variables. The type of the insertAt ' +
+                                  'InputPin is UnlimitedNatural, but the value cannot be zero. It is omitted for ' +
+                                  'unordered Variables.')
+    is_replace_all = models.BooleanField(help_text='Specifies whether existing values of the Variable should be ' +
+                                         'removed before adding the new value.')
 
 
 class ActivityPartition(ActivityGroup):
@@ -3498,17 +3862,22 @@ class ActivityPartition(ActivityGroup):
     __package__ = 'UML.Activities'
 
     edge = models.ForeignKey('ActivityEdge', 
-                             )
-    is_dimension = models.BooleanField()
-    is_external = models.BooleanField()
+                             help_text='ActivityEdges immediately contained in the ActivityPartition.')
+    is_dimension = models.BooleanField(help_text='Indicates whether the ActivityPartition groups other ' +
+                                       'ActivityPartitions along a dimension.')
+    is_external = models.BooleanField(help_text='Indicates whether the ActivityPartition represents an entity to ' +
+                                      'which the partitioning structure does not apply.')
     node = models.ForeignKey('ActivityNode', 
-                             )
+                             help_text='ActivityNodes immediately contained in the ActivityPartition.')
     represents = models.ForeignKey('Element', 
-                                   )
+                                   help_text='An Element represented by the functionality modeled within the ' +
+                                   'ActivityPartition.')
     subpartition = models.ForeignKey('self', 
-                                     )
+                                     help_text='Other ActivityPartitions immediately contained in this ' +
+                                     'ActivityPartition (as its subgroups).')
     super_partition = models.ForeignKey('self', 
-                                        )
+                                        help_text='Other ActivityPartitions immediately containing this ' +
+                                        'ActivityPartition (as its superGroups).')
 
 
 class Substitution(models.Model):
@@ -3523,9 +3892,11 @@ class Substitution(models.Model):
 
     realization = models.OneToOneField('Realization')
     contract = models.ForeignKey('Classifier', 
-                                 )
+                                 help_text='The contract with which the substituting classifier complies.')
     substituting_classifier = models.ForeignKey('Classifier', 
-                                                )
+                                                help_text='Instances of the substituting classifier are runtime ' +
+                                                'substitutable where instances of the contract classifier are ' +
+                                                'expected.')
 
 
 class ProfileApplication(DirectedRelationship):
@@ -3537,10 +3908,11 @@ class ProfileApplication(DirectedRelationship):
     __package__ = 'UML.Packages'
 
     applied_profile = models.ForeignKey('Profile', 
-                                        )
-    applying_package = models.ForeignKey('Package', 
-                                         )
-    is_strict = models.BooleanField()
+                                        help_text='References the Profiles that are applied to a Package through ' +
+                                        'this ProfileApplication.')
+    applying_package = models.ForeignKey('Package', help_text='The package that owns the profile application.')
+    is_strict = models.BooleanField(help_text='Specifies that the Profile filtering rules for the metaclasses of ' +
+                                    'the referenced metamodel shall be strictly applied.')
 
 
 class PackageImport(DirectedRelationship):
@@ -3553,11 +3925,17 @@ class PackageImport(DirectedRelationship):
     __package__ = 'UML.CommonStructure'
 
     imported_package = models.ForeignKey('Package', 
-                                         )
+                                         help_text='Specifies the Package whose members are imported into a ' +
+                                         'Namespace.')
     importing_namespace = models.ForeignKey('Namespace', 
-                                            )
+                                            help_text='Specifies the Namespace that imports the members from a ' +
+                                            'Package.')
     visibility = models.ForeignKey('VisibilityKind', 
-                                   )
+                                   help_text='Specifies the visibility of the imported PackageableElements within ' +
+                                   'the importingNamespace, i.e., whether imported Elements will in turn be ' +
+                                   'visible to other Namespaces. If the PackageImport is public, the imported ' +
+                                   'Elements will be visible outside the importingNamespace, while, if the ' +
+                                   'PackageImport is private, they will not.')
 
 
 class DestroyObjectAction(Action):
@@ -3567,10 +3945,11 @@ class DestroyObjectAction(Action):
 
     __package__ = 'UML.Actions'
 
-    is_destroy_links = models.BooleanField()
-    is_destroy_owned_objects = models.BooleanField()
-    target = models.ForeignKey('InputPin', 
-                               )
+    is_destroy_links = models.BooleanField(help_text='Specifies whether links in which the object participates ' +
+                                           'are destroyed along with the object.')
+    is_destroy_owned_objects = models.BooleanField(help_text='Specifies whether objects owned by the object (via ' +
+                                                   'composition) are destroyed along with the object.')
+    target = models.ForeignKey('InputPin', help_text='The InputPin providing the object to be destroyed.')
 
 
 class ExpansionNode(ObjectNode):
@@ -3586,9 +3965,10 @@ class ExpansionNode(ObjectNode):
     __package__ = 'UML.Actions'
 
     region_as_input = models.ForeignKey('ExpansionRegion', 
-                                        )
+                                        help_text='The ExpansionRegion for which the ExpansionNode is an input.')
     region_as_output = models.ForeignKey('ExpansionRegion', 
-                                         )
+                                         help_text='The ExpansionRegion for which the ExpansionNode is an ' +
+                                         'output.')
 
 
 class ParameterEffectKind(models.Model):
@@ -3629,8 +4009,7 @@ class Trigger(NamedElement):
     __package__ = 'UML.CommonBehavior'
 
     event = models.ForeignKey('Event', help_text='The Event that detected by the Trigger.')
-    port = models.ForeignKey('Port', 
-                             )
+    port = models.ForeignKey('Port', help_text='A optional Port of through which the given effect is detected.')
 
 
 class Component(models.Model):
@@ -3642,15 +4021,31 @@ class Component(models.Model):
     __package__ = 'UML.StructuredClassifiers'
 
     class_ = models.OneToOneField('Class')
-    is_indirectly_instantiated = models.BooleanField()
+    is_indirectly_instantiated = models.BooleanField(help_text='If true, the Component is defined at design-time, ' +
+                                                     'but at run-time (or execution-time) an object specified by ' +
+                                                     'the Component does not exist, that is, the Component is ' +
+                                                     'instantiated indirectly, through the instantiation of its ' +
+                                                     'realizing Classifiers or parts.')
     packaged_element = models.ForeignKey('PackageableElement', 
-                                         )
+                                         help_text='The set of PackageableElements that a Component owns. In the ' +
+                                         'namespace of a Component, all model elements that are involved in or ' +
+                                         'related to its definition may be owned or imported explicitly. These may ' +
+                                         'include e.g., Classes, Interfaces, Components, Packages, UseCases, ' +
+                                         'Dependencies (e.g., mappings), and Artifacts.')
     provided = models.ForeignKey('Interface', 
-                                 )
+                                 help_text='The Interfaces that the Component exposes to its environment. These ' +
+                                 'Interfaces may be Realized by the Component or any of its realizingClassifiers, ' +
+                                 'or they may be the Interfaces that are provided by its public Ports.')
     realization = models.ForeignKey('ComponentRealization', 
-                                    )
+                                    help_text='The set of Realizations owned by the Component. Realizations ' +
+                                    'reference the Classifiers of which the Component is an abstraction; i.e., ' +
+                                    'that realize its behavior.')
     required = models.ForeignKey('Interface', 
-                                 )
+                                 help_text='The Interfaces that the Component requires from other Components in ' +
+                                 'its environment in order to be able to offer its full set of provided ' +
+                                 'functionality. These Interfaces may be used by the Component or any of its ' +
+                                 'realizingClassifiers, or they may be the Interfaces that are required by its ' +
+                                 'public Ports.')
 
     def provided_operation(self):
         """
@@ -3678,10 +4073,11 @@ class ConditionalNode(models.Model):
     __package__ = 'UML.Actions'
 
     structured_activity_node = models.OneToOneField('StructuredActivityNode')
-    clause = models.ForeignKey('Clause', 
-                               )
-    is_assured = models.BooleanField()
-    is_determinate = models.BooleanField()
+    clause = models.ForeignKey('Clause', help_text='The set of Clauses composing the ConditionalNode.')
+    is_assured = models.BooleanField(help_text='If true, the modeler asserts that the test for at least one ' +
+                                     'Clause of the ConditionalNode will succeed.')
+    is_determinate = models.BooleanField(help_text='If true, the modeler asserts that the test for at most one ' +
+                                         'Clause of the ConditionalNode will succeed.')
 
     def __init__(self, *args, **kwargs):
         super(ConditionalNode).__init__(*args, **kwargs)
@@ -3708,9 +4104,11 @@ class InterfaceRealization(models.Model):
 
     realization = models.OneToOneField('Realization')
     contract = models.ForeignKey('Interface', 
-                                 )
+                                 help_text='References the Interface specifying the conformance contract.')
     implementing_classifier = models.ForeignKey('BehavioredClassifier', 
-                                                )
+                                                help_text='References the BehavioredClassifier that owns this ' +
+                                                'InterfaceRealization, i.e., the BehavioredClassifier that ' +
+                                                'realizes the Interface to which it refers.')
 
 
 class Signal(Classifier):
@@ -3721,8 +4119,7 @@ class Signal(Classifier):
 
     __package__ = 'UML.SimpleClassifiers'
 
-    owned_attribute = models.ForeignKey('Property', 
-                                        )
+    owned_attribute = models.ForeignKey('Property', help_text='The attributes owned by the Signal.')
 
 
 class StateInvariant(InteractionFragment):
@@ -3736,7 +4133,7 @@ class StateInvariant(InteractionFragment):
     __package__ = 'UML.Interactions'
 
     invariant = models.ForeignKey('Constraint', 
-                                  )
+                                  help_text='A Constraint that should hold at runtime for this StateInvariant.')
 
     def __init__(self, *args, **kwargs):
         super(StateInvariant).__init__(*args, **kwargs)
@@ -3751,9 +4148,10 @@ class Slot(Element):
     __package__ = 'UML.Classification'
 
     defining_feature = models.ForeignKey('StructuralFeature', 
-                                         )
+                                         help_text='The StructuralFeature that specifies the values that may be ' +
+                                         'held by the Slot.')
     owning_instance = models.ForeignKey('InstanceSpecification', 
-                                        )
+                                        help_text='The InstanceSpecification that owns this Slot.')
     value = models.ForeignKey('ValueSpecification', help_text='The value or values held by the Slot.')
 
 
@@ -3776,7 +4174,8 @@ class TimeEvent(Event):
 
     __package__ = 'UML.CommonBehavior'
 
-    is_relative = models.BooleanField()
+    is_relative = models.BooleanField(help_text='Specifies whether the TimeEvent is specified as an absolute or ' +
+                                      'relative time.')
     when = models.ForeignKey('TimeExpression', help_text='Specifies the time of the TimeEvent.')
 
 
@@ -3788,9 +4187,10 @@ class TimeExpression(ValueSpecification):
     __package__ = 'UML.Values'
 
     expr = models.ForeignKey('ValueSpecification', 
-                             )
+                             help_text='A ValueSpecification that evaluates to the value of the TimeExpression.')
     observation = models.ForeignKey('Observation', 
-                                    )
+                                    help_text='Refers to the Observations that are involved in the computation of ' +
+                                    'the TimeExpression value.')
 
 
 class Actor(BehavioredClassifier):
@@ -3841,13 +4241,12 @@ class Interaction(InteractionFragment, Behavior):
 
     action = models.ForeignKey('Action', help_text='Actions owned by the Interaction.')
     formal_gate = models.ForeignKey('Gate', 
-                                    )
+                                    help_text='Specifies the gates that form the message interface between this ' +
+                                    'Interaction and any InteractionUses which reference it.')
     fragment = models.ForeignKey('InteractionFragment', 
-                                 )
-    lifeline = models.ForeignKey('Lifeline', 
-                                 )
-    message = models.ForeignKey('Message', 
-                                )
+                                 help_text='The ordered set of fragments in the Interaction.')
+    lifeline = models.ForeignKey('Lifeline', help_text='Specifies the participants in this Interaction.')
+    message = models.ForeignKey('Message', help_text='The Messages contained in this Interaction.')
 
 
 class JoinNode(ControlNode):
@@ -3857,9 +4256,13 @@ class JoinNode(ControlNode):
 
     __package__ = 'UML.Activities'
 
-    is_combine_duplicate = models.BooleanField()
+    is_combine_duplicate = models.BooleanField(help_text='Indicates whether incoming tokens having objects with ' +
+                                               'the same identity are combined into one by the JoinNode.')
     join_spec = models.ForeignKey('ValueSpecification', 
-                                  )
+                                  help_text='A ValueSpecification giving the condition under which the JoinNode ' +
+                                  'will offer a token on its outgoing ActivityEdge. If no joinSpec is specified, ' +
+                                  'then the JoinNode will offer an outgoing token if tokens are offered on all of ' +
+                                  'its incoming ActivityEdges (an "and" condition).')
 
 
 class ReadLinkObjectEndAction(Action):
@@ -3871,10 +4274,8 @@ class ReadLinkObjectEndAction(Action):
     __package__ = 'UML.Actions'
 
     end = models.ForeignKey('Property', help_text='The Association end to be read.')
-    object_ = models.ForeignKey('InputPin', 
-                                )
-    result = models.ForeignKey('OutputPin', 
-                               )
+    object_ = models.ForeignKey('InputPin', help_text='The input pin from which the link object is obtained.')
+    result = models.ForeignKey('OutputPin', help_text='The OutputPin where the result value is placed.')
 
 
 class BroadcastSignalAction(InvocationAction):
@@ -3888,8 +4289,7 @@ class BroadcastSignalAction(InvocationAction):
 
     __package__ = 'UML.Actions'
 
-    signal = models.ForeignKey('Signal', 
-                               )
+    signal = models.ForeignKey('Signal', help_text='The Signal whose instances are to be sent.')
 
 
 class CentralBufferNode(ObjectNode):
@@ -3919,8 +4319,7 @@ class SignalEvent(MessageEvent):
 
     __package__ = 'UML.CommonBehavior'
 
-    signal = models.ForeignKey('Signal', 
-                               )
+    signal = models.ForeignKey('Signal', help_text='The specific Signal that is associated with this SignalEvent.')
 
 
 class Comment(Element):
@@ -3930,8 +4329,7 @@ class Comment(Element):
 
     __package__ = 'UML.CommonStructure'
 
-    annotated_element = models.ForeignKey('Element', 
-                                          )
+    annotated_element = models.ForeignKey('Element', help_text='References the Element(s) being commented.')
     body = models.CharField(max_length=255, help_text='Specifies a string that is the comment.')
 
 
@@ -3944,19 +4342,20 @@ class Activity(Behavior):
     __package__ = 'UML.Activities'
 
     edge = models.ForeignKey('ActivityEdge', 
-                             )
-    group = models.ForeignKey('ActivityGroup', 
-                              )
-    is_read_only = models.BooleanField()
-    is_single_execution = models.BooleanField()
-    node = models.ForeignKey('ActivityNode', 
-                             )
-    partition = models.ForeignKey('ActivityPartition', 
-                                  )
+                             help_text='ActivityEdges expressing flow between the nodes of the Activity.')
+    group = models.ForeignKey('ActivityGroup', help_text='Top-level ActivityGroups in the Activity.')
+    is_read_only = models.BooleanField(help_text='If true, this Activity must not make any changes to objects. ' +
+                                       'The default is false (an Activity may make nonlocal changes). (This is an ' +
+                                       'assertion, not an executable property. It may be used by an execution ' +
+                                       'engine to optimize model execution. If the assertion is violated by the ' +
+                                       'Activity, then the model is ill-formed.)')
+    is_single_execution = models.BooleanField(help_text='If true, all invocations of the Activity are handled by ' +
+                                              'the same execution.')
+    node = models.ForeignKey('ActivityNode', help_text='ActivityNodes coordinated by the Activity.')
+    partition = models.ForeignKey('ActivityPartition', help_text='Top-level ActivityPartitions in the Activity.')
     structured_node = models.ForeignKey('StructuredActivityNode', 
-                                        )
-    variable = models.ForeignKey('Variable', 
-                                 )
+                                        help_text='Top-level StructuredActivityNodes in the Activity.')
+    variable = models.ForeignKey('Variable', help_text='Top-level Variables defined by the Activity.')
 
 
 class ProtocolTransition(models.Model):
@@ -3972,11 +4371,18 @@ class ProtocolTransition(models.Model):
 
     transition = models.OneToOneField('Transition')
     post_condition = models.ForeignKey('Constraint', 
-                                       )
+                                       help_text='Specifies the post condition of the Transition which is the ' +
+                                       'Condition that should be obtained once the Transition is triggered. This ' +
+                                       'post condition is part of the post condition of the Operation connected to ' +
+                                       'the Transition.')
     pre_condition = models.ForeignKey('Constraint', 
-                                      )
+                                      help_text='Specifies the precondition of the Transition. It specifies the ' +
+                                      'Condition that should be verified before triggering the Transition. This ' +
+                                      'guard condition added to the source State will be evaluated as part of the ' +
+                                      'precondition of the Operation referred by the Transition if any.')
     referred = models.ForeignKey('Operation', 
-                                 )
+                                 help_text='This association refers to the associated Operation. It is derived ' +
+                                 'from the Operation of the CallEvent Trigger when applicable.')
 
     def referred_operation(self):
         """
@@ -4007,8 +4413,7 @@ class Reception(BehavioralFeature):
 
     __package__ = 'UML.SimpleClassifiers'
 
-    signal = models.ForeignKey('Signal', 
-                               )
+    signal = models.ForeignKey('Signal', help_text='The Signal that this Reception handles.')
 
 
 class ClearVariableAction(VariableAction):
@@ -4030,7 +4435,7 @@ class ActionInputPin(models.Model):
 
     input_pin = models.OneToOneField('InputPin')
     from_action = models.ForeignKey('Action', 
-                                    )
+                                    help_text='The Action used to provide the values of the ActionInputPin.')
 
 
 class LiteralReal(LiteralSpecification):
@@ -4058,11 +4463,19 @@ class Image(Element):
     __package__ = 'UML.Packages'
 
     content = models.CharField(max_length=255, 
-                               )
+                               help_text='This contains the serialization of the image according to the format. ' +
+                               'The value could represent a bitmap, image such as a GIF file, or drawing ' +
+                               '"instructions" using a standard such as Scalable Vector Graphic (SVG) (which is ' +
+                               'XML based).')
     format_ = models.CharField(max_length=255, 
-                               )
+                               help_text='This indicates the format of the content, which is how the string ' +
+                               'content should be interpreted. The following values are reserved: SVG, GIF, PNG, ' +
+                               'JPG, WMF, EMF, BMP. In addition the prefix "MIME: " is also reserved. This option ' +
+                               'can be used as an alternative to express the reserved values above, for example ' +
+                               '"SVG" could instead be expressed as "MIME: image/svg+xml".')
     location = models.CharField(max_length=255, 
-                                )
+                                help_text='This contains a location that can be used by a tool to locate the ' +
+                                'image as an alternative to embedding it in the stereotype.')
 
 
 class ControlFlow(ActivityEdge):
@@ -4169,11 +4582,13 @@ class TemplateBinding(DirectedRelationship):
     __package__ = 'UML.CommonStructure'
 
     bound_element = models.ForeignKey('TemplateableElement', 
-                                      )
+                                      help_text='The TemplateableElement that is bound by this TemplateBinding.')
     parameter_substitution = models.ForeignKey('TemplateParameterSubstitution', 
-                                               )
+                                               help_text='The TemplateParameterSubstitutions owned by this ' +
+                                               'TemplateBinding.')
     signature = models.ForeignKey('TemplateSignature', 
-                                  )
+                                  help_text='The TemplateSignature for the template that is the target of this ' +
+                                  'TemplateBinding.')
 
 
 class AssociationClass(models.Model):
@@ -4201,8 +4616,13 @@ class TimeObservation(Observation):
     __package__ = 'UML.Values'
 
     event = models.ForeignKey('NamedElement', 
-                              )
-    first_event = models.BooleanField()
+                              help_text='The TimeObservation is determined by the entering or exiting of the ' +
+                              'event Element during execution.')
+    first_event = models.BooleanField(help_text='The value of firstEvent is related to the event. If firstEvent ' +
+                                      'is true, then the corresponding observation event is the first time instant ' +
+                                      'the execution enters the event Element. If firstEvent is false, then the ' +
+                                      'corresponding observation event is the time instant the execution exits the ' +
+                                      'event Element.')
 
 
 class ProtocolConformance(DirectedRelationship):
@@ -4217,9 +4637,11 @@ class ProtocolConformance(DirectedRelationship):
     __package__ = 'UML.StateMachines'
 
     general_machine = models.ForeignKey('ProtocolStateMachine', 
-                                        )
+                                        help_text='Specifies the ProtocolStateMachine to which the specific ' +
+                                        'ProtocolStateMachine conforms.')
     specific_machine = models.ForeignKey('ProtocolStateMachine', 
-                                         )
+                                         help_text='Specifies the ProtocolStateMachine which conforms to the ' +
+                                         'general ProtocolStateMachine.')
 
 
 class FinalState(models.Model):
@@ -4245,8 +4667,7 @@ class ConsiderIgnoreFragment(models.Model):
     __package__ = 'UML.Interactions'
 
     combined_fragment = models.OneToOneField('CombinedFragment')
-    message = models.ForeignKey('NamedElement', 
-                                )
+    message = models.ForeignKey('NamedElement', help_text='The set of messages that apply to this fragment.')
 
 
 class StateMachine(Behavior):
@@ -4262,11 +4683,13 @@ class StateMachine(Behavior):
     __package__ = 'UML.StateMachines'
 
     connection_point = models.ForeignKey('Pseudostate', 
-                                         )
-    region = models.ForeignKey('Region', 
-                               )
+                                         help_text='The connection points defined for this StateMachine. They ' +
+                                         'represent the interface of the StateMachine when used as part of ' +
+                                         'submachine State')
+    region = models.ForeignKey('Region', help_text='The Regions owned directly by the StateMachine.')
     submachine_state = models.ForeignKey('State', 
-                                         )
+                                         help_text='References the submachine(s) in case of a submachine State. ' +
+                                         'Multiple machines are referenced in case of a concurrent State.')
 
     def __init__(self, *args, **kwargs):
         super(StateMachine).__init__(*args, **kwargs)
@@ -4321,13 +4744,20 @@ class ExceptionHandler(Element):
     __package__ = 'UML.Activities'
 
     exception_input = models.ForeignKey('ObjectNode', 
-                                        )
+                                        help_text='An ObjectNode within the handlerBody. When the ' +
+                                        'ExceptionHandler catches an exception, the exception token is placed on ' +
+                                        'this ObjectNode, causing the handlerBody to execute.')
     exception_type = models.ForeignKey('Classifier', 
-                                       )
+                                       help_text='The Classifiers whose instances the ExceptionHandler catches as ' +
+                                       'exceptions. If an exception occurs whose type is any exceptionType, the ' +
+                                       'ExceptionHandler catches the exception and executes the handlerBody.')
     handler_body = models.ForeignKey('ExecutableNode', 
-                                     )
+                                     help_text='An ExecutableNode that is executed if the ExceptionHandler ' +
+                                     'catches an exception.')
     protected_node = models.ForeignKey('ExecutableNode', 
-                                       )
+                                       help_text='The ExecutableNode protected by the ExceptionHandler. If an ' +
+                                       'exception propagates out of the protectedNode and has a type matching one ' +
+                                       'of the exceptionTypes, then it is caught by this ExceptionHandler.')
 
 
 class TransitionKind(models.Model):
@@ -4370,11 +4800,18 @@ class InstanceSpecification(DeploymentTarget, PackageableElement, DeployedArtifa
     __package__ = 'UML.Classification'
 
     classifier = models.ForeignKey('Classifier', 
-                                   )
+                                   help_text='The Classifier or Classifiers of the represented instance. If ' +
+                                   'multiple Classifiers are specified, the instance is classified by all of ' +
+                                   'them.')
     slot = models.ForeignKey('Slot', 
-                             )
+                             help_text='A Slot giving the value or values of a StructuralFeature of the instance. ' +
+                             'An InstanceSpecification can have one Slot per StructuralFeature of its Classifiers, ' +
+                             'including inherited features. It is not necessary to model a Slot for every ' +
+                             'StructuralFeature, in which case the InstanceSpecification is a partial ' +
+                             'description.')
     specification = models.ForeignKey('ValueSpecification', 
-                                      )
+                                      help_text='A specification of how to compute, derive, or construct the ' +
+                                      'instance.')
 
 
 class QualifierValue(Element):
@@ -4386,9 +4823,9 @@ class QualifierValue(Element):
     __package__ = 'UML.Actions'
 
     qualifier = models.ForeignKey('Property', 
-                                  )
+                                  help_text='The qualifier Property for which the value is to be specified.')
     value = models.ForeignKey('InputPin', 
-                              )
+                              help_text='The InputPin from which the specified value for the qualifier is taken.')
 
 
 class EnumerationLiteral(models.Model):
@@ -4400,7 +4837,7 @@ class EnumerationLiteral(models.Model):
 
     instance_specification = models.OneToOneField('InstanceSpecification')
     enumeration = models.ForeignKey('Enumeration', 
-                                    )
+                                    help_text='The Enumeration that this EnumerationLiteral is a member of.')
 
     def __init__(self, *args, **kwargs):
         super(EnumerationLiteral).__init__(*args, **kwargs)
@@ -4421,7 +4858,11 @@ class TimeConstraint(models.Model):
     __package__ = 'UML.Values'
 
     interval_constraint = models.OneToOneField('IntervalConstraint')
-    first_event = models.BooleanField()
+    first_event = models.BooleanField(help_text='The value of firstEvent is related to the constrainedElement. If ' +
+                                      'firstEvent is true, then the corresponding observation event is the first ' +
+                                      'time instant the execution enters the constrainedElement. If firstEvent is ' +
+                                      'false, then the corresponding observation event is the last time instant ' +
+                                      'the execution is within the constrainedElement.')
 
     def __init__(self, *args, **kwargs):
         super(TimeConstraint).__init__(*args, **kwargs)
@@ -4438,11 +4879,15 @@ class ReplyAction(Action):
     __package__ = 'UML.Actions'
 
     reply_to_call = models.ForeignKey('Trigger', 
-                                      )
+                                      help_text='The Trigger specifying the Operation whose call is being replied ' +
+                                      'to.')
     reply_value = models.ForeignKey('InputPin', 
-                                    )
+                                    help_text='A list of InputPins providing the values for the output (inout, ' +
+                                    'out, and return) Parameters of the Operation. These values are returned to ' +
+                                    'the caller.')
     return_information = models.ForeignKey('InputPin', 
-                                           )
+                                           help_text='An InputPin that holds the return information value ' +
+                                           'produced by an earlier AcceptCallAction.')
 
 
 class RaiseExceptionAction(Action):
@@ -4453,8 +4898,7 @@ class RaiseExceptionAction(Action):
 
     __package__ = 'UML.Actions'
 
-    exception = models.ForeignKey('InputPin', 
-                                  )
+    exception = models.ForeignKey('InputPin', help_text='An InputPin whose value becomes the exception object.')
 
 
 class LiteralNull(LiteralSpecification):
@@ -4485,9 +4929,11 @@ class GeneralOrdering(NamedElement):
     __package__ = 'UML.Interactions'
 
     after = models.ForeignKey('OccurrenceSpecification', 
-                              )
+                              help_text='The OccurrenceSpecification referenced comes after the ' +
+                              'OccurrenceSpecification referenced by before.')
     before = models.ForeignKey('OccurrenceSpecification', 
-                               )
+                               help_text='The OccurrenceSpecification referenced comes before the ' +
+                               'OccurrenceSpecification referenced by after.')
 
 
 class Interface(Classifier):
@@ -4499,17 +4945,20 @@ class Interface(Classifier):
     __package__ = 'UML.SimpleClassifiers'
 
     nested_classifier = models.ForeignKey('Classifier', 
-                                          )
+                                          help_text='References all the Classifiers that are defined (nested) ' +
+                                          'within the Interface.')
     owned_attribute = models.ForeignKey('Property', 
-                                        )
-    owned_operation = models.ForeignKey('Operation', 
-                                        )
+                                        help_text='The attributes (i.e., the Properties) owned by the Interface.')
+    owned_operation = models.ForeignKey('Operation', help_text='The Operations owned by the Interface.')
     owned_reception = models.ForeignKey('Reception', 
-                                        )
+                                        help_text='Receptions that objects providing this Interface are willing ' +
+                                        'to accept.')
     protocol = models.ForeignKey('ProtocolStateMachine', 
-                                 )
+                                 help_text='References a ProtocolStateMachine specifying the legal sequences of ' +
+                                 'the invocation of the BehavioralFeatures described in the Interface.')
     redefined_interface = models.ForeignKey('self', 
-                                            )
+                                            help_text='References all the Interfaces redefined by this ' +
+                                            'Interface.')
 
 
 class Collaboration(StructuredClassifier, BehavioredClassifier):
@@ -4522,7 +4971,7 @@ class Collaboration(StructuredClassifier, BehavioredClassifier):
     __package__ = 'UML.StructuredClassifiers'
 
     collaboration_role = models.ForeignKey('ConnectableElement', 
-                                           )
+                                           help_text='Represents the participants in the Collaboration.')
 
 
 class ProtocolStateMachine(models.Model):
@@ -4541,8 +4990,7 @@ class ProtocolStateMachine(models.Model):
     __package__ = 'UML.StateMachines'
 
     state_machine = models.OneToOneField('StateMachine')
-    conformance = models.ForeignKey('ProtocolConformance', 
-                                    )
+    conformance = models.ForeignKey('ProtocolConformance', help_text='Conformance between ProtocolStateMachine')
 
 
 class OpaqueAction(Action):
@@ -4553,13 +5001,14 @@ class OpaqueAction(Action):
     __package__ = 'UML.Actions'
 
     body = models.CharField(max_length=255, 
-                            )
-    input_value = models.ForeignKey('InputPin', 
-                                    )
+                            help_text='Provides a textual specification of the functionality of the Action, in ' +
+                            'one or more languages other than UML.')
+    input_value = models.ForeignKey('InputPin', help_text='The InputPins providing inputs to the OpaqueAction.')
     language = models.CharField(max_length=255, 
-                                )
+                                help_text='If provided, a specification of the language used for each of the body ' +
+                                'Strings.')
     output_value = models.ForeignKey('OutputPin', 
-                                     )
+                                     help_text='The OutputPins on which the OpaqueAction provides outputs.')
 
 
 class Model(models.Model):
@@ -4575,7 +5024,8 @@ class Model(models.Model):
 
     package = models.OneToOneField('Package')
     viewpoint = models.CharField(max_length=255, 
-                                 )
+                                 help_text='The name of the viewpoint that is expressed by a model (this name may ' +
+                                 'refer to a profile definition).')
 
 
 class Duration(ValueSpecification):
@@ -4587,9 +5037,10 @@ class Duration(ValueSpecification):
     __package__ = 'UML.Values'
 
     expr = models.ForeignKey('ValueSpecification', 
-                             )
+                             help_text='A ValueSpecification that evaluates to the value of the Duration.')
     observation = models.ForeignKey('Observation', 
-                                    )
+                                    help_text='Refers to the Observations that are involved in the computation of ' +
+                                    'the Duration value')
 
 
 class Variable(ConnectableElement, MultiplicityElement):
@@ -4604,10 +5055,9 @@ class Variable(ConnectableElement, MultiplicityElement):
 
     __package__ = 'UML.Activities'
 
-    activity_scope = models.ForeignKey('Activity', 
-                                       )
+    activity_scope = models.ForeignKey('Activity', help_text='An Activity that owns the Variable.')
     scope = models.ForeignKey('StructuredActivityNode', 
-                              )
+                              help_text='A StructuredActivityNode that owns the Variable.')
 
     def is_accessible_by(self):
         """
@@ -4631,12 +5081,11 @@ class TestIdentityAction(Action):
 
     __package__ = 'UML.Actions'
 
-    first = models.ForeignKey('InputPin', 
-                              )
+    first = models.ForeignKey('InputPin', help_text='The InputPin on which the first input object is placed.')
     result = models.ForeignKey('OutputPin', 
-                               )
-    second = models.ForeignKey('InputPin', 
-                               )
+                               help_text='The OutputPin whose Boolean value indicates whether the two input ' +
+                               'objects are identical.')
+    second = models.ForeignKey('InputPin', help_text='The OutputPin on which the second input object is placed.')
 
 
 class RemoveStructuralFeatureValueAction(WriteStructuralFeatureAction):
@@ -4647,9 +5096,12 @@ class RemoveStructuralFeatureValueAction(WriteStructuralFeatureAction):
 
     __package__ = 'UML.Actions'
 
-    is_remove_duplicates = models.BooleanField()
+    is_remove_duplicates = models.BooleanField(help_text='Specifies whether to remove duplicates of the value in ' +
+                                               'nonunique StructuralFeatures.')
     remove_at = models.ForeignKey('InputPin', 
-                                  )
+                                  help_text='An InputPin that provides the position of an existing value to ' +
+                                  'remove in ordered, nonunique structural features. The type of the removeAt ' +
+                                  'InputPin is UnlimitedNatural, but the value cannot be zero or unlimited.')
 
 
 class CreateObjectAction(Action):
@@ -4661,8 +5113,7 @@ class CreateObjectAction(Action):
     __package__ = 'UML.Actions'
 
     classifier = models.ForeignKey('Classifier', help_text='The Classifier to be instantiated.')
-    result = models.ForeignKey('OutputPin', 
-                               )
+    result = models.ForeignKey('OutputPin', help_text='The OutputPin on which the newly created object is placed.')
 
 
 class InitialNode(ControlNode):
@@ -4684,11 +5135,17 @@ class ConnectorEnd(MultiplicityElement):
     __package__ = 'UML.StructuredClassifiers'
 
     defining_end = models.ForeignKey('Property', 
-                                     )
+                                     help_text='A derived property referencing the corresponding end on the ' +
+                                     'Association which types the Connector owing this ConnectorEnd, if any. It is ' +
+                                     'derived by selecting the end at the same place in the ordering of ' +
+                                     'Association ends as this ConnectorEnd.')
     part_with_port = models.ForeignKey('Property', 
-                                       )
+                                       help_text='Indicates the role of the internal structure of a Classifier ' +
+                                       'with the Port to which the ConnectorEnd is attached.')
     role = models.ForeignKey('ConnectableElement', 
-                             )
+                             help_text='The ConnectableElement attached at this ConnectorEnd. When an instance of ' +
+                             'the containing Classifier is created, a link may (depending on the multiplicities) ' +
+                             'be created to an instance of the Classifier that types this ConnectableElement.')
 
     def defining_end_operation(self):
         """
@@ -4733,11 +5190,14 @@ class DeploymentSpecification(models.Model):
 
     artifact = models.OneToOneField('Artifact')
     deployment = models.ForeignKey('Deployment', 
-                                   )
+                                   help_text='The deployment with which the DeploymentSpecification is ' +
+                                   'associated.')
     deployment_location = models.CharField(max_length=255, 
-                                           )
+                                           help_text='The location where an Artifact is deployed onto a Node. ' +
+                                           'This is typically a "directory" or "memory address."')
     execution_location = models.CharField(max_length=255, 
-                                          )
+                                          help_text='The location where a component Artifact executes. This may ' +
+                                          'be a local or remote location.')
 
 
 class AcceptCallAction(models.Model):
@@ -4755,7 +5215,10 @@ class AcceptCallAction(models.Model):
 
     accept_event_action = models.OneToOneField('AcceptEventAction')
     return_information = models.ForeignKey('OutputPin', 
-                                           )
+                                           help_text='An OutputPin where a value is placed containing sufficient ' +
+                                           'information to perform a subsequent ReplyAction and return control to ' +
+                                           'the caller. The contents of this value are opaque. It can be passed ' +
+                                           'and copied but it cannot be manipulated by the model.')
 
 
 class LinkEndDestructionData(models.Model):
@@ -4768,8 +5231,11 @@ class LinkEndDestructionData(models.Model):
 
     link_end_data = models.OneToOneField('LinkEndData')
     destroy_at = models.ForeignKey('InputPin', 
-                                   )
-    is_destroy_duplicates = models.BooleanField()
+                                   help_text='The InputPin that provides the position of an existing link to be ' +
+                                   'destroyed in an ordered, nonunique Association end. The type of the destroyAt ' +
+                                   'InputPin is UnlimitedNatural, but the value cannot be zero or unlimited.')
+    is_destroy_duplicates = models.BooleanField(help_text='Specifies whether to destroy duplicates of the value ' +
+                                                'in nonunique Association ends.')
 
     def all_pins(self):
         """
@@ -4789,16 +5255,15 @@ class Region(Namespace, RedefinableElement):
 
     __package__ = 'UML.StateMachines'
 
-    extended_region = models.ForeignKey('self', 
-                                        )
+    extended_region = models.ForeignKey('self', help_text='The region of which this region is an extension.')
     state = models.ForeignKey('State', 
-                              )
+                              help_text='The State that owns the Region. If a Region is owned by a State, then it ' +
+                              'cannot also be owned by a StateMachine.')
     state_machine = models.ForeignKey('StateMachine', 
-                                      )
-    subvertex = models.ForeignKey('Vertex', 
-                                  )
-    transition = models.ForeignKey('Transition', 
-                                   )
+                                      help_text='The StateMachine that owns the Region. If a Region is owned by a ' +
+                                      'StateMachine, then it cannot also be owned by a State.')
+    subvertex = models.ForeignKey('Vertex', help_text='The set of Vertices that are owned by this Region.')
+    transition = models.ForeignKey('Transition', help_text='The set of Transitions owned by the Region.')
 
     def __init__(self, *args, **kwargs):
         super(Region).__init__(*args, **kwargs)
@@ -4829,9 +5294,12 @@ class DecisionNode(ControlNode):
     __package__ = 'UML.Activities'
 
     decision_input = models.ForeignKey('Behavior', 
-                                       )
+                                       help_text='A Behavior that is executed to provide an input to guard ' +
+                                       'ValueSpecifications on ActivityEdges outgoing from the DecisionNode.')
     decision_input_flow = models.ForeignKey('ObjectFlow', 
-                                            )
+                                            help_text='An additional ActivityEdge incoming to the DecisionNode ' +
+                                            'that provides a decision input value for the guards ' +
+                                            'ValueSpecifications on ActivityEdges outgoing from the DecisionNode.')
 
 
 class Connector(Feature):
@@ -4845,15 +5313,26 @@ class Connector(Feature):
     __package__ = 'UML.StructuredClassifiers'
 
     contract = models.ForeignKey('Behavior', 
-                                 )
+                                 help_text='The set of Behaviors that specify the valid interaction patterns ' +
+                                 'across the Connector.')
     end = models.ForeignKey('ConnectorEnd', 
-                            )
+                            help_text='A Connector has at least two ConnectorEnds, each representing the ' +
+                            'participation of instances of the Classifiers typing the ConnectableElements attached ' +
+                            'to the end. The set of ConnectorEnds is ordered.')
     kind = models.ForeignKey('ConnectorKind', 
-                             )
+                             help_text='Indicates the kind of Connector. This is derived: a Connector with one or ' +
+                             'more ends connected to a Port which is not on a Part and which is not a behavior ' +
+                             'port is a delegation; otherwise it is an assembly.')
     redefined_connector = models.ForeignKey('self', 
-                                            )
+                                            help_text='A Connector may be redefined when its containing ' +
+                                            'Classifier is specialized. The redefining Connector may have a type ' +
+                                            'that specializes the type of the redefined Connector. The types of ' +
+                                            'the ConnectorEnds of the redefining Connector may specialize the ' +
+                                            'types of the ConnectorEnds of the redefined Connector. The properties ' +
+                                            'of the ConnectorEnds of the redefining Connector may be replaced.')
     type_ = models.ForeignKey('Association', 
-                              )
+                              help_text='An optional Association that classifies links corresponding to this ' +
+                              'Connector.')
 
     def kind_operation(self):
         """
@@ -4881,7 +5360,8 @@ class ChangeEvent(Event):
     __package__ = 'UML.CommonBehavior'
 
     change_expression = models.ForeignKey('ValueSpecification', 
-                                          )
+                                          help_text='A Boolean-valued ValueSpecification that will result in a ' +
+                                          'ChangeEvent whenever its value changes from false to true.')
 
 
 class CallOperationAction(CallAction):
@@ -4900,7 +5380,8 @@ class CallOperationAction(CallAction):
 
     operation = models.ForeignKey('Operation', help_text='The Operation being invoked.')
     target = models.ForeignKey('InputPin', 
-                               )
+                               help_text='The InputPin that provides the target object to which the Operation ' +
+                               'call request is sent.')
 
     def input_parameters(self):
         """
@@ -4918,8 +5399,7 @@ class ReadSelfAction(Action):
 
     __package__ = 'UML.Actions'
 
-    result = models.ForeignKey('OutputPin', 
-                               )
+    result = models.ForeignKey('OutputPin', help_text='The OutputPin on which the context object is placed.')
 
 
 class ClearStructuralFeatureAction(StructuralFeatureAction):
@@ -4931,7 +5411,8 @@ class ClearStructuralFeatureAction(StructuralFeatureAction):
     __package__ = 'UML.Actions'
 
     result = models.ForeignKey('OutputPin', 
-                               )
+                               help_text='The OutputPin on which is put the input object as modified by the ' +
+                               'ClearStructuralFeatureAction.')
 
 
 class ClearAssociationAction(Action):
@@ -4944,7 +5425,8 @@ class ClearAssociationAction(Action):
 
     association = models.ForeignKey('Association', help_text='The Association to be cleared.')
     object_ = models.ForeignKey('InputPin', 
-                                )
+                                help_text='The InputPin that gives the object whose participation in the ' +
+                                'Association is to be cleared.')
 
 
 class ReadLinkObjectEndQualifierAction(Action):
@@ -4955,11 +5437,9 @@ class ReadLinkObjectEndQualifierAction(Action):
 
     __package__ = 'UML.Actions'
 
-    object_ = models.ForeignKey('InputPin', 
-                                )
+    object_ = models.ForeignKey('InputPin', help_text='The InputPin from which the link object is obtained.')
     qualifier = models.ForeignKey('Property', help_text='The qualifier Property to be read.')
-    result = models.ForeignKey('OutputPin', 
-                               )
+    result = models.ForeignKey('OutputPin', help_text='The OutputPin where the result value is placed.')
 
 
 class StartObjectBehaviorAction(CallAction):
@@ -4974,7 +5454,8 @@ class StartObjectBehaviorAction(CallAction):
     __package__ = 'UML.Actions'
 
     object_ = models.ForeignKey('InputPin', 
-                                )
+                                help_text='An InputPin that holds the object that is either a Behavior to be ' +
+                                'started or has a classifierBehavior to be started.')
 
     def input_parameters(self):
         """
@@ -5027,9 +5508,10 @@ class Profile(models.Model):
 
     package = models.OneToOneField('Package')
     metaclass_reference = models.ForeignKey('ElementImport', 
-                                            )
+                                            help_text='References a metaclass that may be extended.')
     metamodel_reference = models.ForeignKey('PackageImport', 
-                                            )
+                                            help_text='References a package containing (directly or indirectly) ' +
+                                            'metaclasses that may be extended.')
 
 
 class DestroyLinkAction(WriteLinkAction):
