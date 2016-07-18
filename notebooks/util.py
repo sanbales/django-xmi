@@ -60,14 +60,14 @@ class DotDict(dict):
     __delattr__ = dict.__delitem__
 
     def __init__(self, input_=None):
-        clean_input = {} if inp is None else self._clean(input_)
+        clean_input = {} if input_ is None else self._clean(input_)
 
         if hasattr(clean_input, 'keys'):
             for key, value in clean_input.items():
                 if hasattr(value, 'keys'):
-                    value = DotDict(value, self)
+                    value = DotDict(value)
                 elif isinstance(value, (list, tuple)) and all(LIST_TO_DICT_KEY in item for item in value):
-                    value = DotDict({item[LIST_TO_DICT_KEY]: item for item in value}, self)
+                    value = DotDict({item[LIST_TO_DICT_KEY]: item for item in value})
 
                 self[key] = value
         elif isinstance(clean_input, (list, tuple)) and all(LIST_TO_DICT_KEY in item for item in clean_input):
@@ -75,10 +75,10 @@ class DotDict(dict):
                 if LIST_TO_DICT_KEY in item:
                     self[item[LIST_TO_DICT_KEY]] = DotDict(item)
 
-    def _clean(self, inp):
-        if hasattr(inp, 'keys'):
+    def _clean(self, input_):
+        if hasattr(input_, 'keys'):
             new = {}
-            for key, value in inp.items():
+            for key, value in input_.items():
                 new_key = key
                 new_value = self._clean(value)
                 
@@ -90,12 +90,12 @@ class DotDict(dict):
                     new_key = new_key.replace('{}__'.format(ns), '')
                 
                 new[new_key] = new_value
-        elif isinstance(inp, (list, tuple)):
-            new = [None] * len(inp)
-            for i, item in enumerate(inp):
+        elif isinstance(input_, (list, tuple)):
+            new = [None] * len(input_)
+            for i, item in enumerate(input_):
                 new[i] = self._clean(item)
         else:
-            return inp
+            return input_
         return new
 
     def __dir__(self):
