@@ -4,6 +4,8 @@ from .uml import *
 
 class Stakeholder(models.Model):
 
+    __package__ = 'SysML.ModelElements'
+
     stereotype = models.OneToOneField('Stereotype')
     base__classifier = models.ForeignKey('Classifier')
     concern = models.CharField(max_length=255)
@@ -11,6 +13,8 @@ class Stakeholder(models.Model):
 
 
 class ChangeStructuralFeatureEvent(models.Model):
+
+    __package__ = 'SysML.Ports&Flows'
 
     stereotype = models.OneToOneField('Stereotype')
     base__change_event = models.ForeignKey('ChangeEvent')
@@ -32,9 +36,12 @@ class ParticipantProperty(models.Model):
     association.
     """
 
+    __package__ = 'SysML.Blocks'
+
     stereotype = models.OneToOneField('Stereotype')
     base__property = models.ForeignKey('Property')
-    end = models.ForeignKey('Property', help_text="A member end of the association block owning the property on which the stereotype is applied.")
+    end = models.ForeignKey('Property', 
+                            )
 
 
 class Optional(models.Model):
@@ -44,6 +51,8 @@ class Optional(models.Model):
     for the activity or any behavior to begin or end execution. Otherwise, the lower
     multiplicity must be greater than zero, which is called 'required.'
     """
+
+    __package__ = 'SysML.Activities'
 
     stereotype = models.OneToOneField('Stereotype')
     base__parameter = models.ForeignKey('Parameter')
@@ -59,9 +68,12 @@ class ItemFlow(models.Model):
     and the tank, we can specify an ItemFlow of type Water on the connector.
     """
 
+    __package__ = 'SysML.Ports&Flows'
+
     stereotype = models.OneToOneField('Stereotype')
     base__information_flow = models.ForeignKey('InformationFlow')
-    item_property = models.ForeignKey('Property', help_text="An optional property that relates the flowing item to the instances of the connector's enclosing block. This property is applicable only for item flows assigned to connectors. The multiplicity is zero if the item flow is assigned to an Association.")
+    item_property = models.ForeignKey('Property', 
+                                      )
 
 
 class Block(models.Model):
@@ -88,17 +100,23 @@ class Block(models.Model):
     interpretation of a specific connector.
     """
 
+    __package__ = 'SysML.Blocks'
+
     stereotype = models.OneToOneField('Stereotype')
     base__class = models.ForeignKey('Class')
-    is_encapsulated = models.BooleanField(help_text="If true, then the block is treated as a black box; a part typed by this black box can only be connected via its ports or directly to its outer boundary. If false, or if a value is not present, then connections can be established to elements of its internal structure via deep-nested connector ends.")
+    is_encapsulated = models.BooleanField()
 
 
 class InterfaceBlock(models.Model):
+
+    __package__ = 'SysML.Ports&Flows'
 
     block = models.OneToOneField('Block')
 
 
 class ElementGroup(models.Model):
+
+    __package__ = 'SysML.ModelElements'
 
     stereotype = models.OneToOneField('Stereotype')
     base__comment = models.ForeignKey('Comment')
@@ -114,6 +132,8 @@ class ElementGroup(models.Model):
 
 class DirectedRelationshipPropertyPath(models.Model):
 
+    __package__ = 'SysML.Blocks'
+
     stereotype = models.OneToOneField('Stereotype')
     base__directed_relationship = models.ForeignKey('DirectedRelationship')
     source_context = models.ForeignKey('Classifier')
@@ -126,6 +146,8 @@ class DirectedRelationshipPropertyPath(models.Model):
 
 
 class Trace(DirectedRelationshipPropertyPath):
+
+    __package__ = 'SysML.Requirements'
 
 
     def __init__(self, *args, **kwargs):
@@ -142,20 +164,27 @@ class Copy(models.Model):
     only copy of the text of the supplier requirement.
     """
 
+    __package__ = 'SysML.Requirements'
+
     trace = models.OneToOneField('Trace')
 
 
 class ElementPropertyPath(models.Model):
 
+    __package__ = 'SysML.Blocks'
+
     stereotype = models.OneToOneField('Stereotype')
     base__element = models.ForeignKey('Element')
-    property_path = models.ForeignKey('Property', help_text="The propertyPath list of the NestedConnectorEnd stereotype must identify a path of containing properties that identify the connected property in the context of the block that owns the connector. The ordering of properties is from a property of the block that owns the connector, through a property of each intermediate block that types the preceding property, until a property is reached that contains a connector end property within its type. The connector end property is not included in the propertyPath list, but instead is held by the role property of the UML ConnectorEnd metaclass.")
+    property_path = models.ForeignKey('Property', 
+                                      )
 
     class Meta:
         abstract = True
 
 
 class InvocationOnNestedPortAction(ElementPropertyPath):
+
+    __package__ = 'SysML.Ports&Flows'
 
 
     def __init__(self, *args, **kwargs):
@@ -164,16 +193,22 @@ class InvocationOnNestedPortAction(ElementPropertyPath):
 
 class FullPort(models.Model):
 
+    __package__ = 'SysML.Ports&Flows'
+
     stereotype = models.OneToOneField('Stereotype')
     base__port = models.ForeignKey('Port')
 
 
 class ControlValues(models.Model):
 
+    __package__ = 'SysML.Libraries'
+
     package = models.OneToOneField('Package')
 
 
 class PrimitiveValueTypes(models.Model):
+
+    __package__ = 'SysML.Libraries'
 
     package = models.OneToOneField('Package')
 
@@ -186,10 +221,14 @@ class DeriveReqt(models.Model):
     to the (supplier) requirement from which it is derived.
     """
 
+    __package__ = 'SysML.Requirements'
+
     trace = models.OneToOneField('Trace')
 
 
 class Expose(models.Model):
+
+    __package__ = 'SysML.ModelElements'
 
     stereotype = models.OneToOneField('Stereotype')
     base__dependency = models.ForeignKey('Dependency')
@@ -205,9 +244,12 @@ class ConnectorProperty(models.Model):
     block typing the connector referred to by the connector property.
     """
 
+    __package__ = 'SysML.Blocks'
+
     stereotype = models.OneToOneField('Stereotype')
     base__property = models.ForeignKey('Property')
-    connector = models.ForeignKey('Connector', help_text="A connector of the block owning the property on which the stereotype is applied.")
+    connector = models.ForeignKey('Connector', 
+                                  )
 
 
 class NoBuffer(models.Model):
@@ -224,6 +266,8 @@ class NoBuffer(models.Model):
     node that are refused by outgoing edges, or action for input pins, are held
     until they can leave the object node.
     """
+
+    __package__ = 'SysML.Activities'
 
     stereotype = models.OneToOneField('Stereotype')
     base__object_node = models.ForeignKey('ObjectNode')
@@ -248,6 +292,8 @@ class Rate(models.Model):
     units.
     """
 
+    __package__ = 'SysML.Activities'
+
     stereotype = models.OneToOneField('Stereotype')
     base__activity_edge = models.ForeignKey('ActivityEdge')
     base__object_node = models.ForeignKey('ObjectNode')
@@ -263,6 +309,8 @@ class DistributedProperty(models.Model):
     the distributions represented by properties of those stereotype subclasses.
     """
 
+    __package__ = 'SysML.Blocks'
+
     stereotype = models.OneToOneField('Stereotype')
     base__property = models.ForeignKey('Property')
 
@@ -272,6 +320,8 @@ class VerdictKind(models.Model):
     Type of a return parameter of a TestCase must be VerdictKind, consistent with
     the UML Testing Profile.
     """
+
+    __package__ = 'SysML.Requirements'
 
     enumeration = models.OneToOneField('Enumeration')
     PASS = 0
@@ -297,20 +347,32 @@ class Requirement(models.Model):
     responsible for designing and implementing the system.
     """
 
+    __package__ = 'SysML.Requirements'
+
     stereotype = models.OneToOneField('Stereotype')
     base__class = models.ForeignKey('Class')
-    derived = models.ForeignKey('self', help_text="Derived from all requirements that are the client of a 'deriveReqt' relationship for which this requirement is a supplier.")
-    derived_from = models.ForeignKey('self', help_text="Derived from all requirements that are the supplier of a 'deriveReqt' relationship for which this requirement is a client.")
-    id_ = models.CharField(max_length=255, help_text="The unique id of the requirement.")
-    master = models.ForeignKey('self', help_text="This is a derived property that lists the master requirement for this slave requirement. The master attribute is derived from the supplier of the Copy dependency that has this requirement as the slave.")
-    refined_by = models.ForeignKey('NamedElement', help_text="Derived from all elements that are the client of a 'refine' relationship for which this requirement is a supplier.")
-    satisfied_by = models.ForeignKey('NamedElement', help_text="Derived from all elements that are the client of a 'satisfy' relationship for which this requirement is a supplier.")
-    text = models.CharField(max_length=255, help_text="The textual representation or a reference to the textual representation of the requirement.")
-    traced_to = models.ForeignKey('NamedElement', help_text="Derived from all elements that are the client of a 'trace' relationship for which this requirement is a supplier.")
-    verified_by = models.ForeignKey('NamedElement', help_text="Derived from all elements that are the client of a 'verify' relationship for which this requirement is a supplier.")
+    derived = models.ForeignKey('self', 
+                                )
+    derived_from = models.ForeignKey('self', 
+                                     )
+    id_ = models.CharField(max_length=255, help_text='The unique id of the requirement.')
+    master = models.ForeignKey('self', 
+                               )
+    refined_by = models.ForeignKey('NamedElement', 
+                                   )
+    satisfied_by = models.ForeignKey('NamedElement', 
+                                     )
+    text = models.CharField(max_length=255, 
+                            )
+    traced_to = models.ForeignKey('NamedElement', 
+                                  )
+    verified_by = models.ForeignKey('NamedElement', 
+                                    )
 
 
 class TriggerOnNestedPort(ElementPropertyPath):
+
+    __package__ = 'SysML.Ports&Flows'
 
 
     def __init__(self, *args, **kwargs):
@@ -328,6 +390,8 @@ class ControlOperator(models.Model):
     semantics.
     """
 
+    __package__ = 'SysML.Activities'
+
     stereotype = models.OneToOneField('Stereotype')
     base__behavior = models.ForeignKey('Behavior')
     base__operation = models.ForeignKey('Operation')
@@ -340,10 +404,13 @@ class View(models.Model):
     other packages and other views that conform to the viewpoint.
     """
 
+    __package__ = 'SysML.ModelElements'
+
     stereotype = models.OneToOneField('Stereotype')
     base__class = models.ForeignKey('Class')
     stakeholder = models.ForeignKey('Stakeholder')
-    view_point = models.ForeignKey('Viewpoint', help_text="The viewpoint for this View, derived from the supplier of the 'conform' dependency whose client is this View.")
+    view_point = models.ForeignKey('Viewpoint', 
+                                   )
 
 
 class ValueType(models.Model):
@@ -358,10 +425,14 @@ class ValueType(models.Model):
     that may never be given a concrete data representation.
     """
 
+    __package__ = 'SysML.Blocks'
+
     stereotype = models.OneToOneField('Stereotype')
     base__data_type = models.ForeignKey('DataType')
-    quantity_kind = models.ForeignKey('InstanceSpecification', help_text="A kind of quantity that may be stated by means of defined units, as identified by an instance of the Dimension stereotype. A value type may optionally specify a dimension without any unit. Such a value has no concrete representation, but may be used to express a value in an abstract form independent of any specific units.")
-    unit = models.ForeignKey('InstanceSpecification', help_text="A quantity in terms of which the magnitudes of other quantities that have the same dimension can be stated, as identified by an instance of the Unit stereotype.")
+    quantity_kind = models.ForeignKey('InstanceSpecification', 
+                                      )
+    unit = models.ForeignKey('InstanceSpecification', 
+                             )
 
 
 class PropertySpecificType(models.Model):
@@ -371,6 +442,8 @@ class PropertySpecificType(models.Model):
     can contain definitions of new or redefined features which extend the original
     classifier referenced by the property-specific type.
     """
+
+    __package__ = 'SysML.Blocks'
 
     stereotype = models.OneToOneField('Stereotype')
     base__classifier = models.ForeignKey('Classifier')
@@ -394,33 +467,48 @@ class FlowProperty(models.Model):
     receive the Signal.
     """
 
+    __package__ = 'SysML.Ports&Flows'
+
     stereotype = models.OneToOneField('Stereotype')
     base__property = models.ForeignKey('Property')
-    direction = models.ForeignKey('FlowDirection', help_text="Specifies if the property value is received from an external block (direction='in'), transmitted to an external Block (direction='out') or both (direction='inout').")
+    direction = models.ForeignKey('FlowDirection', 
+                                  )
 
 
 class EndPathMultiplicity(models.Model):
 
+    __package__ = 'SysML.Blocks'
+
     stereotype = models.OneToOneField('Stereotype')
     base__property = models.ForeignKey('Property')
-    lower = models.ForeignKey('Integer', help_text="Gives the minimum number of values of the property at the end of the related bindingPath, for each object reached by navigation along the bindingPath from an instance of the block owning the property to which EndPathMultiplicity is applied")
-    upper = models.ForeignKey('UnlimitedNatural', help_text="Gives the maximum number of values of the property at the end of the related bindingPath, for each object reached by navigation along the bindingPath from an instance of the block owning the property to which EndPathMultiplicity is applied.")
+    lower = models.ForeignKey('Integer', 
+                              )
+    upper = models.ForeignKey('UnlimitedNatural', 
+                              )
 
 
 class BoundReference(models.Model):
 
+    __package__ = 'SysML.Blocks'
+
     end_path_multiplicity = models.OneToOneField('EndPathMultiplicity')
-    binding_path = models.ForeignKey('Property', help_text="Gives the propertyPath of the NestedConnectorEnd applied, if any, to the boundEnd, appended to the role of the boundEnd.")
-    bound_end = models.ForeignKey('ConnectorEnd', help_text="Gives a connector end of a binding connector opposite to the end linked to the stereotyped property, or linked to a property that generalizes the stereotyped one through redefinition.")
+    binding_path = models.ForeignKey('Property', 
+                                     )
+    bound_end = models.ForeignKey('ConnectorEnd', 
+                                  )
 
 
 class ProxyPort(models.Model):
+
+    __package__ = 'SysML.Ports&Flows'
 
     stereotype = models.OneToOneField('Stereotype')
     base__port = models.ForeignKey('Port')
 
 
 class UnitAndQuantityKind(models.Model):
+
+    __package__ = 'SysML.Libraries'
 
     package = models.OneToOneField('Package')
 
@@ -429,6 +517,8 @@ class TestCase(models.Model):
     """
     A test case is a method for verifying a requirement is satisfied.
     """
+
+    __package__ = 'SysML.Requirements'
 
     stereotype = models.OneToOneField('Stereotype')
     base__behavior = models.ForeignKey('Behavior')
@@ -443,11 +533,15 @@ class AllocateActivityPartition(models.Model):
     below.
     """
 
+    __package__ = 'SysML.Allocations'
+
     stereotype = models.OneToOneField('Stereotype')
     base__activity_partition = models.ForeignKey('ActivityPartition')
 
 
 class Refine(DirectedRelationshipPropertyPath):
+
+    __package__ = 'SysML.Requirements'
 
 
     def __init__(self, *args, **kwargs):
@@ -464,6 +558,8 @@ class NestedConnectorEnd(ElementPropertyPath):
     accessible properties from the block that owns the connector.
     """
 
+    __package__ = 'SysML.Blocks'
+
 
     def __init__(self, *args, **kwargs):
         super(NestedConnectorEnd).__init__(*args, **kwargs)
@@ -479,6 +575,8 @@ class Problem(models.Model):
     same manner as a comment.
     """
 
+    __package__ = 'SysML.ModelElements'
+
     stereotype = models.OneToOneField('Stereotype')
     base__comment = models.ForeignKey('Comment')
 
@@ -491,6 +589,8 @@ class Verify(models.Model):
     (client) element to the (supplier) requirement.
     """
 
+    __package__ = 'SysML.Requirements'
+
     trace = models.OneToOneField('Trace')
 
     def get_verifies(self):
@@ -498,6 +598,8 @@ class Verify(models.Model):
 
 
 class AcceptChangeStructuralFeatureEventAction(models.Model):
+
+    __package__ = 'SysML.Ports&Flows'
 
     stereotype = models.OneToOneField('Stereotype')
     base__accept_event_action = models.ForeignKey('AcceptEventAction')
@@ -512,6 +614,8 @@ class Allocate(DirectedRelationshipPropertyPath):
     between model elements is a precursor to a more concrete relationship between
     the elements, their properties, operations, attributes, or sub-classes.
     """
+
+    __package__ = 'SysML.Allocations'
 
 
     def __init__(self, *args, **kwargs):
@@ -531,6 +635,8 @@ class Rationale(models.Model):
     model element in the same manner as a comment.
     """
 
+    __package__ = 'SysML.ModelElements'
+
     stereotype = models.OneToOneField('Stereotype')
     base__comment = models.ForeignKey('Comment')
 
@@ -547,6 +653,8 @@ class Probability(models.Model):
     the same behavior at the time the probabilities are used.
     """
 
+    __package__ = 'SysML.Activities'
+
     stereotype = models.OneToOneField('Stereotype')
     base__activity_edge = models.ForeignKey('ActivityEdge')
     base__parameter_set = models.ForeignKey('ParameterSet')
@@ -554,6 +662,8 @@ class Probability(models.Model):
 
 
 class DirectedFeature(models.Model):
+
+    __package__ = 'SysML.Ports&Flows'
 
     stereotype = models.OneToOneField('Stereotype')
     base__feature = models.ForeignKey('Feature')
@@ -579,9 +689,12 @@ class AdjunctProperty(models.Model):
     stereotyped by AdjunctProperty.
     """
 
+    __package__ = 'SysML.Blocks'
+
     stereotype = models.OneToOneField('Stereotype')
     base__property = models.ForeignKey('Property')
-    principal = models.ForeignKey('Element', help_text="Gives the element that determines the values of the property. Must be a connector, call action, object node, variable, or parameter.")
+    principal = models.ForeignKey('Element', 
+                                  )
 
 
 class Conform(models.Model):
@@ -592,6 +705,8 @@ class Conform(models.Model):
     dependencies the arrow direction points from the (client/source) to the
     (supplier/target).
     """
+
+    __package__ = 'SysML.ModelElements'
 
     stereotype = models.OneToOneField('Stereotype')
     base__generalization = models.ForeignKey('Generalization')
@@ -606,6 +721,8 @@ class ClassifierBehaviorProperty(models.Model):
     stereotyped property or one of its specializations.
     """
 
+    __package__ = 'SysML.Blocks'
+
     stereotype = models.OneToOneField('Stereotype')
     base__property = models.ForeignKey('Property')
 
@@ -615,6 +732,8 @@ class Discrete(models.Model):
     Discrete rate is a special case of rate of flow (see Rate) where the increment
     of time between items is non-zero.
     """
+
+    __package__ = 'SysML.Activities'
 
     rate = models.OneToOneField('Rate')
 
@@ -627,35 +746,17 @@ class Satisfy(models.Model):
     that is satisfied.
     """
 
+    __package__ = 'SysML.Requirements'
+
     trace = models.OneToOneField('Trace')
 
     def get_satisfies(self):
         pass
 
 
-class FlowPort(models.Model):
-    """
-    A FlowPort is an interaction point through which input and/or output of items
-    such as data, material, or energy may flow. This enables the owning block to
-    declare which items it may exchange with its environment and the interaction
-    points through which the exchange is made. We distinguish between atomic flow
-    port and a nonatomic flow port. Atomic flow ports relay items that are
-    classified by a single Block, ValueType, DataType, or Signal classifier. A
-    nonatomic flow port relays items of several types as specified by a
-    FlowSpecification. Flow ports and associated flow specifications define 'what
-    can flow' between the block and its environment, whereas item flows specify
-    'what does flow' in a specific usage context. Flow ports relay items to their
-    owning block or to a connector that connects them with their owner's internal
-    parts (internal connector).
-    """
-
-    stereotype = models.OneToOneField('Stereotype')
-    base__port = models.ForeignKey('Port')
-    direction = models.ForeignKey('FlowDirection', help_text="Indicates the direction in which an atomic flow port relays its items. If the direction is set to 'in,' then the items are relayed from an external connector via the flow port into the flow port's owner (or one of its parts). If the direction is set to 'out,' then the items are relayed from the flow port's owner, via the flow port, through an external connector attached to the flow port. If the direction is set to 'inout,' then items can flow both ways. By default, the value is inout.")
-    is_atomic = models.BooleanField(help_text="This is a derived attribute (derived from the flow port's type). For a flow port typed by a flow specification the value of this attribute is False, otherwise the value is True.")
-
-
 class FeatureDirection(models.Model):
+
+    __package__ = 'SysML.Ports&Flows'
 
     enumeration = models.OneToOneField('Enumeration')
     PROVIDED = 0
@@ -680,6 +781,8 @@ class Continuous(models.Model):
     flow may or may not apply to streaming parameters.
     """
 
+    __package__ = 'SysML.Activities'
+
     rate = models.OneToOneField('Rate')
 
 
@@ -702,6 +805,8 @@ class Overwrite(models.Model):
     already there.
     """
 
+    __package__ = 'SysML.Activities'
+
     stereotype = models.OneToOneField('Stereotype')
     base__object_node = models.ForeignKey('ObjectNode')
 
@@ -721,6 +826,8 @@ class BindingConnector(models.Model):
     for nested ends of other SysML connectors.
     """
 
+    __package__ = 'SysML.Blocks'
+
     stereotype = models.OneToOneField('Stereotype')
     base__connector = models.ForeignKey('Connector')
 
@@ -736,15 +843,21 @@ class Viewpoint(models.Model):
     physical architecture, and security test cases.
     """
 
+    __package__ = 'SysML.ModelElements'
+
     stereotype = models.OneToOneField('Stereotype')
     base__class = models.ForeignKey('Class')
     concern = models.CharField(max_length=255)
-    concern_list = models.ForeignKey('Comment', help_text="The interest of the stakeholders.")
-    language = models.CharField(max_length=255, help_text="The languages used to construct the viewpoint.")
-    method = models.ForeignKey('Behavior', help_text="The methods used to construct the views for this viewpoint.")
+    concern_list = models.ForeignKey('Comment', 
+                                     )
+    language = models.CharField(max_length=255, 
+                                )
+    method = models.ForeignKey('Behavior', 
+                               )
     presentation = models.CharField(max_length=255)
-    purpose = models.CharField(max_length=255, help_text="The purpose addresses the stakeholder concerns.")
-    stakeholder = models.ForeignKey('Stakeholder', help_text="Set of stakeholders.")
+    purpose = models.CharField(max_length=255, 
+                               )
+    stakeholder = models.ForeignKey('Stakeholder', help_text='Set of stakeholders.')
 
 
 class FlowDirection(models.Model):
@@ -754,28 +867,20 @@ class FlowDirection(models.Model):
     indicate if a property is an input or an output with respect to its owner.
     """
 
+    __package__ = 'SysML.Ports&Flows'
+
     enumeration = models.OneToOneField('Enumeration')
     IN = 'in'
     INOUT = 'inout'
     OUT = 'out'
     CHOICES = (
         (IN, 'Indicates that the flow property is input to the owning block.'),
-        (INOUT, 'Indicates that the flow property is both an input and an output of the owning block.'),
+        (INOUT, 'Indicates that the flow property is both an input and an output of the ' +
+                'owning block.'),
         (OUT, 'Indicates that the flow property is an output of the owning block.'),
     )
 
     flow_direction = models.CharField(max_length=255, choices=CHOICES, default=OUT)
-
-
-class FlowSpecification(models.Model):
-    """
-    A FlowSpecification specifies inputs and outputs as a set of flow properties. A
-    flow specification is used by flow ports to specify what items can flow via the
-    port.
-    """
-
-    stereotype = models.OneToOneField('Stereotype')
-    base__interface = models.ForeignKey('Interface')
 
 
 class ConstraintBlock(models.Model):
@@ -790,6 +895,8 @@ class ConstraintBlock(models.Model):
     parameters, with the exception of constraint properties that hold internally
     nested usages of other constraint blocks.
     """
+
+    __package__ = 'SysML.ConstraintBlocks'
 
     block = models.OneToOneField('Block')
     base__class = models.ForeignKey('Class')
