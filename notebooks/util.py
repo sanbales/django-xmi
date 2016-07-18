@@ -1,20 +1,7 @@
+from os import path
+from re import compile as re_compile
 import urllib.request
 import xmltodict
-import re
-
-
-first_cap_re = re.compile('(.)([A-Z][a-z]+)')
-all_cap_re = re.compile('([a-z0-9])([A-Z])')
-
-
-def camel_to_snake(camel_str):
-    s1 = first_cap_re.sub(r'\1_\2', camel_str)
-    return all_cap_re.sub(r'\1_\2', s1).lower()
-
-
-def snake_to_camel(snake_str):
-    components = snake_str.split('_')
-    return components[0] + "".join(x.title() for x in components[1:])
 
 
 LIST_TO_DICT_KEY = 'name'
@@ -29,12 +16,35 @@ FIELD = '    {name} = {kind}({model}help_text="{description}"{extra_attrs})'
 BASE_DIR = 'c:/sandboxes/SysML2OSLCResourceShapes/SysMLProfileToOSLCResourceShapes/Resource Shapes/'
 FIELDS_TO_SKIP = ('name', 'visibility', 'uri')
 
+first_cap_re = re_compile(r'(.)([A-Z][a-z]+)')
+all_cap_re = re_compile(r'([a-z0-9])([A-Z])')
+url_re = re_compile(r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+')
 
-def get_spec(url):
-    with urllib.request.urlopen(url) as response:
-        xml = response.read()
 
-    return DotDict(xmltodict.parse(xml.decode()))
+def camel_to_snake(camel_str):
+    s1 = first_cap_re.sub(r'\1_\2', camel_str)
+    return all_cap_re.sub(r'\1_\2', s1).lower()
+
+
+def snake_to_camel(snake_str):
+    components = snake_str.split('_')
+    return components[0] + "".join(x.title() for x in components[1:])
+
+
+def parse_xmi(xmi_loc):
+    if url_re.match(xmi_loc):
+        with urllib.request.urlopen(xmi_loc) as response:
+            xmi = response.read()
+    elif path.exists(xmi_loc):
+        with open(xmi_loc, 'r') as file:
+            xmi = file.readlines()
+
+    xmi = DotDict(xmltodict.parse(xmi.decode()))
+
+    if 'XMI' in xmi:
+        return xmi.XMI
+
+    return xmi
 
 
 class DotDict(dict):
@@ -49,18 +59,22 @@ class DotDict(dict):
     __setattr__ = dict.__setitem__
     __delattr__ = dict.__delitem__
 
-    def __init__(self, inp=None, parent=None):
-        #self.__id = uuid4()
-        clean_input = {} if inp is None else self._clean(inp)
+    def __init__(self, input_=None):
+        clean_input = {} if inp is None else self._clean(input_)
 
-        for key, value in clean_input.items():
-            if hasattr(value, 'keys'):
-                value = DotDict(value, self)
-            elif isinstance(value, list) and all(LIST_TO_DICT_KEY in item for item in value):
-                value = DotDict({item[LIST_TO_DICT_KEY]: item for item in value}, self)
+        if hasattr(clean_input, 'keys'):
+            for key, value in clean_input.items():
+                if hasattr(value, 'keys'):
+                    value = DotDict(value, self)
+                elif isinstance(value, (list, tuple)) and all(LIST_TO_DICT_KEY in item for item in value):
+                    value = DotDict({item[LIST_TO_DICT_KEY]: item for item in value}, self)
 
-            self[key] = value
-    
+                self[key] = value
+        elif isinstance(clean_input, (list, tuple)) and all(LIST_TO_DICT_KEY in item for item in clean_input):
+            for item in clean_input:
+                if LIST_TO_DICT_KEY in item:
+                    self[item[LIST_TO_DICT_KEY]] = DotDict(item)
+
     def _clean(self, inp):
         if hasattr(inp, 'keys'):
             new = {}
