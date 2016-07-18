@@ -1,0 +1,20 @@
+site_name: Django XMI
+site_url: https://github.com/sanbales/django-xmi
+site_description: Django XMI - Django Models from XMI definitions
+
+repo_url: https://github.com/sanbales/django-xmi
+
+theme_dir: docs_theme
+
+markdown_extensions:
+ - toc:
+    anchorlink: True
+
+pages:
+ - Home: 'index.md'
+# - Tutorial:
+    # - 'Quickstart': 'tutorial/quickstart.md'
+# - Guide:
+    # - 'Packages': 'guide/packages.md'
+# - Topics:
+     # - 'A more general approach': 'topics/a-more-general-approach.md'
