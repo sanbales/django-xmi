@@ -65,8 +65,8 @@ setup(
     long_description=read_md('README.md'),
     author='Santiago Balestrini-Robinson',
     author_email='sanbales@gmail.com',
-    packages=get_packages('rest_framework'),
-    package_data=get_package_data('rest_framework'),
+    packages=get_packages('django_xmi'),
+    package_data=get_package_data('django_xmi'),
     install_requires=[],
     zip_safe=False,
     classifiers=[
