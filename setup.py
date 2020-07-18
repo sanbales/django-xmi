@@ -67,7 +67,7 @@ setup(
     author_email='sanbales@gmail.com',
     packages=get_packages('django_xmi'),
     package_data=get_package_data('django_xmi'),
-    install_requires=[],
+    install_requires=['networkx', 'xmltodict'],
     zip_safe=False,
     classifiers=[
         'Development Status :: 5 - Production/Stable',
