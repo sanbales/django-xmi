@@ -3,8 +3,11 @@ import shutil
 from re import compile as re_compile
 
 
-STRING_REPLACEMENTS = {'__': [':'],
-                       '': ['@', '#']}
+STRING_REPLACEMENTS = {
+    '__': [':'],
+    '_': [' ', '.'],
+    '': ['@', '#', '~'],
+}
 KEY_PREFIXES_TO_REMOVE = {'xmi', 'uml', 'oslc', 'rdf'}
 
 # Determine which terms will not be allowed
@@ -17,6 +20,7 @@ RESERVED_TERMS = tuple(term for term in RESERVED_TERMS if '_' != term[0])
 # Declare regular expressions
 first_cap_re = re_compile(r'(.)([A-Z][a-z]+)')
 all_cap_re = re_compile(r'([a-z0-9])([A-Z])')
+first_digits_re = re_compile(r'\d+_')
 
 
 def download_file(url, filepath=None):
@@ -63,6 +67,10 @@ def snake_to_camel(snake_str, upper=True):
 
 
 def make_name_safe(name):
+    name = first_digits_re.sub("", name)
+    for replacement, bad_strings in STRING_REPLACEMENTS.items():
+        for bad_string in bad_strings:
+            name = name.replace(bad_string, replacement)
     name = camel_to_snake(name)
     if name in RESERVED_TERMS:
         # PEP-8's recommends adding an '_' after the name, but that is not allowed in Django

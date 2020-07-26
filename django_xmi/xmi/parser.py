@@ -292,6 +292,8 @@ class XmiParser(object):
                 lines += [_indent + line]
             if not ocl:
                 lines += [_indent * 2 + '"""']
+
+        method_body = '''raise NotImplementedError("Must manually implement this method!")'''
         if ocl:
             ocl = _indent * 3 + ocl.replace('\n\n', '\n').replace('\n', '\n' + _indent * 3)
             if comment:
@@ -301,7 +303,8 @@ class XmiParser(object):
             lines += [_indent * 2 + '.. ocl::']
             lines += ['{}'.format(ocl)]
             lines += [_indent * 2 + '"""']
-        lines += [_indent * 2 + 'pass']
+            method_body = '''raise NotImplemented("Must manually translate OCL to Python: '{}'")'''.format(ocl.strip())
+        lines += [_indent * 2 + method_body]
         return lines
 
     def process_operations_and_rules(self):
