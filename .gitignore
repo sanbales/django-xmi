@@ -72,6 +72,9 @@ target/
 # pyenv
 .python-version
 
+# anaconda-project
+envs/
+
 # celery beat schedule file
 celerybeat-schedule
 

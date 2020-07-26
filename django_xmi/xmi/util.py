@@ -1,3 +1,5 @@
+import requests
+import shutil
 from re import compile as re_compile
 
 
@@ -17,6 +19,16 @@ first_cap_re = re_compile(r'(.)([A-Z][a-z]+)')
 all_cap_re = re_compile(r'([a-z0-9])([A-Z])')
 
 
+def download_file(url, filepath=None):
+    local_filename = filepath or url.split('/')[-1]
+
+    with requests.get(url, stream=True) as req:
+        with open(local_filename, 'wb') as fp:
+            shutil.copyfileobj(req.raw, fp)
+
+    return local_filename
+
+
 def camel_to_snake(camel_str):
     """
     Convert CamelCase to snake_case.
@@ -25,6 +37,11 @@ def camel_to_snake(camel_str):
     :return: string in snake_case form
 
     """
+    if "." in camel_str:
+        return ".".join(
+            camel_to_snake(substring)
+            for substring in camel_str.split(".")
+        )
     s1 = first_cap_re.sub(r'\1_\2', camel_str)
     return all_cap_re.sub(r'\1_\2', s1).lower()
 

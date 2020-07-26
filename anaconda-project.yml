@@ -1,0 +1,103 @@
+name: django-xmi
+
+channels:
+  - https://conda.anaconda.org/conda-forge
+  - https://repo.anaconda.com/pkgs/main
+  - https://repo.anaconda.com/pkgs/free
+  - https://repo.anaconda.com/pkgs/pro
+  - https://conda.anaconda.org/msys2
+
+platforms:
+  - linux-64
+  - win-64
+
+variables:
+  NEXT_VERSION: "0.1.1"
+  PREVIOUS_VERSION: "0.1.0"
+  PROJECT_NAME:
+    description: An experiment to auto-generate Django models from an XMI specification.
+    default: Django XMI
+
+commands:
+  lab:
+    unix: jupyter lab
+    windows: jupyter lab
+    env_spec: runtime
+
+  lab:develop:
+    unix: jupyter lab
+    windows: jupyter lab
+    env_spec: develop
+
+  setup:runtime:
+    unix: python -m pip install -e .
+    windows: python -m pip install -e .
+    env_spec: runtime
+
+  setup:develop:
+    unix: python -m pip install -e .
+    windows: python -m pip install -e .
+    env_spec: develop
+
+env_specs:
+  runtime:
+    description: the actual end-user environment
+    inherit_from:
+      - _conda
+      - _lab
+    packages:
+      - django <=3.0.0a0
+      - networkx
+      - xmltodict
+
+  develop:
+    description: testing
+    inherit_from:
+      - runtime
+      - _lint
+      - _test
+
+  ### The environments below contain the common dependencies
+  ### these environments are never installed
+
+  _conda:
+    description: our conda version (never installed)
+    inherit_from:
+      - _python
+    packages:
+      - conda >=4.8,<4.9.0a0
+      - python-libarchive-c
+
+  _lab:
+    description: capture our JupyterLab dependencies (never installed)
+    inherit_from:
+      - _python
+    packages:
+      - jupyterlab >=2.0.0
+
+  _lint:
+    description: code linting packages
+    packages:
+      - black
+      - flake8
+      - isort <5.0.0a0  # this is because flake8 and pylint don't support isort v5
+      - mypy
+      - pylint
+
+  _python:
+    description: our python version (never installed)
+    packages:
+      - python >=3.6,<3.8.0a0
+
+  _test:
+    description: code testing packages
+    packages:
+      - faker
+      - hypothesis
+      - pytest >=2.9.1
+      - pytest-asyncio
+      - pytest-cov >=1.8.1
+      - pytest-django >=2.9.1
+      - pytest-mock
+      - pytest-timeout
+      - requests-mock

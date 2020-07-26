@@ -80,9 +80,12 @@ class XmiParser(object):
                 warn("Ignoring '{}' Package because it appears to be deprecated".format(pkg.name))
                 continue
             for elem in pkg.get('packagedElement', {}).values():
+                if not isinstance(elem, dict) or "name" not in elem:
+                    continue
+
                 # Rename owned_____ keys, e.g., ownedAttributes
                 for key in elem.keys():
-                    if key[:5] == 'owned':
+                    if key.startswith('owned'):
                         value = elem[key]
                         # Fix in case the owned item is not a proper dictionary
                         if all(v in value for v in ('id', 'name', 'type')):
